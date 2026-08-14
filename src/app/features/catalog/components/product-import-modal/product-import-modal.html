@@ -1,0 +1,13 @@
+<app-modal [open]="open" [wide]="true" title="Importar productos desde Excel" description="Descargá la plantilla, completala y volvé a subirla. VESTIA generará los códigos que dejes vacíos." [loading]="loading||parsing()" [confirmLabel]="drafts().length?'Importar '+drafts().length+' producto(s)':'Importar productos'" cancelLabel="Cerrar" (closed)="closed.emit()" (confirmed)="confirm()">
+  <div class="import-layout">
+    <section class="upload-panel">
+      <span class="step-number">1</span><div><h4>Descargar plantilla</h4><p>Incluye instrucciones, columnas listas para completar y un ejemplo con variantes.</p><a href="/templates/plantilla-importacion-productos-vestia.xlsx" download="plantilla-importacion-productos-vestia.xlsx">Descargar plantilla Excel</a></div>
+    </section>
+    <section class="upload-panel">
+      <span class="step-number">2</span><div><h4>Seleccionar archivo completado</h4><p>Formato .xlsx, máximo 10 MB. Una fila representa una variante.</p><label class="file-button">Elegir archivo<input type="file" accept=".xlsx,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" (change)="selectFile($event)"></label>@if(filename()){<small>{{filename()}}</small>}</div>
+    </section>
+  </div>
+  @if(parsing()){<p class="state">Leyendo y validando la planilla…</p>}
+  @if(errors().length){<section class="errors"><h4>No se puede importar todavía</h4><p>Corregí estos puntos en Excel y volvé a seleccionar el archivo:</p><ul>@for(error of errors();track $index){<li>{{error}}</li>}</ul></section>}
+  @if(drafts().length){<section class="preview"><div><h4>Archivo listo</h4><p>{{rowCount()}} filas · {{drafts().length}} productos · {{rowCount()}} variantes</p></div><div class="preview-list">@for(product of drafts().slice(0,10);track product.group){<article><strong>{{product.name}}</strong><span>{{product.variants.length}} variante(s) · Stock inicial {{product.variants[0].stock}} · {{product.categoryName||'Sin categoría'}} · {{product.brandName||'Sin marca'}}</span><small>{{product.sku}} · {{product.barcode}}</small></article>}@if(drafts().length>10){<p>Y {{drafts().length-10}} productos más…</p>}</div></section>}
+</app-modal>

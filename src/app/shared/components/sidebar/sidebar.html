@@ -1,0 +1,31 @@
+<div class="flex h-full flex-col bg-[var(--color-surface)] p-5">
+  <div class="mb-8 flex items-center gap-3">
+    <span class="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white p-1.5 shadow-sm">
+      <img src="vestia-logo.png" alt="Logo de VESTIA" class="h-full w-full object-contain" />
+    </span>
+    <div>
+      <p class="text-xs uppercase tracking-[0.22em] text-[var(--color-muted)]">VESTIA</p>
+      <h2 class="mt-1 text-xl font-semibold text-[var(--color-text)]">Panel</h2>
+    </div>
+  </div>
+
+  <nav class="space-y-2">
+    @for (item of items(); track item.route) {
+      <a
+        [routerLink]="item.route"
+        routerLinkActive="bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
+        class="flex items-center rounded-2xl border border-[var(--color-border)] px-4 py-3 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-white"
+        (click)="closeMobileSidebar()"
+      >
+        {{ item.label }}
+      </a>
+    }
+  </nav>
+
+  <div class="mt-auto rounded-3xl border border-[var(--color-border)] bg-white/80 p-4">
+    <p class="text-sm font-medium">Arquitectura preparada</p>
+    <p class="mt-2 text-sm text-[var(--color-muted)]">
+      Lista para auth, storage, módulos y crecimiento por etapas.
+    </p>
+  </div>
+</div>

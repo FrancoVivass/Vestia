@@ -1,0 +1,15 @@
+<div class="relative inline-block">
+  <button type="button" class="rounded-2xl border border-[var(--color-border)] bg-white px-4 py-2 text-sm font-medium text-[var(--color-text)]">
+    {{ label }}
+  </button>
+
+  @if (items.length) {
+    <div class="absolute left-0 top-full z-20 mt-2 min-w-48 rounded-2xl border border-[var(--color-border)] bg-white p-2 shadow-xl fade-in">
+      @for (item of items; track item) {
+        <button type="button" class="block w-full rounded-xl px-3 py-2 text-left text-sm text-[var(--color-text)] transition hover:bg-[var(--color-background)]">
+          {{ item }}
+        </button>
+      }
+    </div>
+  }
+</div>

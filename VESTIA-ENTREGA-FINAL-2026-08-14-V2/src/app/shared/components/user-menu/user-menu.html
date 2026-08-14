@@ -1,0 +1,14 @@
+<div class="flex items-center gap-3 rounded-full border border-[var(--color-border)] bg-white px-3 py-2 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)]">
+  <span class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-[var(--color-background)]">
+    {{ userInitial() }}
+  </span>
+  <span class="hidden max-w-32 truncate sm:inline">{{ userEmail() }}</span>
+  <button
+    type="button"
+    class="rounded-full border border-[var(--color-border)] px-3 py-1.5 text-xs font-semibold uppercase tracking-[0.08em] transition hover:bg-[var(--color-background)] disabled:opacity-70"
+    [disabled]="loading()"
+    (click)="logout()"
+  >
+    {{ loading() ? 'Saliendo...' : 'Salir' }}
+  </button>
+</div>

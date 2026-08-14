@@ -1,0 +1,21 @@
+<app-modal
+  [open]="open"
+  [title]="brand ? 'Editar marca' : 'Nueva marca'"
+  [description]="'Administrá las marcas del catálogo.'"
+  [loading]="false"
+  [confirmLabel]="brand ? 'Guardar cambios' : 'Crear marca'"
+  cancelLabel="Cancelar"
+  (closed)="closed.emit()"
+  (confirmed)="onSubmit()"
+>
+  <div class="space-y-4">
+    <div>
+      <label class="mb-2 block text-sm font-medium">Nombre</label>
+      <input type="text" [formControl]="form.controls.name" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3" />
+    </div>
+    <div>
+      <label class="mb-2 block text-sm font-medium">Descripción</label>
+      <textarea [formControl]="form.controls.description" rows="3" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3"></textarea>
+    </div>
+  </div>
+</app-modal>

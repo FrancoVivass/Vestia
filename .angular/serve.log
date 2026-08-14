@@ -1,0 +1,520 @@
+
+> vestia@0.0.0 start
+> ng serve --host 127.0.0.1
+
+Node.js version v25.4.0 detected.
+Prior to version 27, odd numbered Node.js versions will not enter LTS status and should not be used for production. For more information, please see https://nodejs.org/en/about/previous-releases/.
+> Building...
+√ Building...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 552.07 kB | 
+styles.css          | styles                     |  41.70 kB | 
+chunk-YLRTKPGR.js   | -                          |   5.57 kB | 
+chunk-XY3YLJPT.js   | -                          |   3.21 kB | 
+chunk-MT3OJFO2.js   | -                          |   2.10 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-ACNATLQV.js   | -                          |   1.73 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 611.78 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-WHJZOUPL.js   | pos-page                   |  38.03 kB | 
+chunk-WXIWMQFD.js   | business-provisioning-page |  29.01 kB | 
+chunk-ZYBKC6TV.js   | reports-page               |  19.01 kB | 
+chunk-JTF4GSCF.js   | operations-page            |  15.55 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [5.136 seconds] - 2026-08-13T17:47:14.053Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4200[22m/[39m
+[2m[32m  ➜[39m[22m[2m  press [22m[1mh + enter[22m[2m to show help[22m
+[2m02:47:15[22m [36m[1m[vite][22m[39m [90m[2m(client)[22m[39m [optimizer] bundling dependencies...
+[2m02:49:23[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mInvalidStateError: Transition was aborted because of invalid state
+[2m02:49:49[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [31m[Unhandled rejection] [1mError[22m: NG0203: The `EnvironmentInjector` token injection failed. `inject()` function must be called from an injection context such as a constructor, a factory function, a field initializer, or a function used with `runInInjectionContext`. Find more at https://v22.angular.dev/errors/NG0203
+[39m > injectInjectorOnly ../../cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=61759906:1053:40
+ > ɵɵinject ../../cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=61759906:1067:58
+ > Object.factory ../../cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=61759906:8005:40
+ > ../../../node_modules/@angular/core/fesm2022/_pending_tasks-chunk.mjs:1316:34
+ > runInInjectorProfilerContext ../../../node_modules/@angular/core/fesm2022/_pending_tasks-chunk.mjs:411:4
+ > R3Injector.hydrate ../../../node_modules/@angular/core/fesm2022/_pending_tasks-chunk.mjs:1314:10
+ > R3Injector.get ../../../node_modules/@angular/core/fesm2022/_pending_tasks-chunk.mjs:1203:22
+ > def.getStandaloneInjector ../../cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=61759906:8024:27
+ > createRootViewInjector ../../../node_modules/@angular/core/fesm2022/_debug_node-chunk.mjs:8997:43
+ > ComponentFactory.create ../../../node_modules/@angular/core/fesm2022/_debug_node-chunk.mjs:9068:31
+
+[2m02:49:49[22m [31m[1m[vite][22m[39m [31m[2m(client)[22m[39m [2m[console.error] [22mERROR Error: NG0203: The `EnvironmentInjector` token injection failed. `inject()` function must be called from an injection context such as a constructor, a factory function, a field initializer, or a function used with `runInInjectionContext`. Find more at https://v22.angular.dev/errors/NG0203
+    at injectInjectorOnly (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=61759906:1053:40)
+    at ɵɵinject (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=61759906:1067:58)
+    at Object.factory (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=61759906:8005:40)
+    at http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=e3a00875:1563:28
+    at runInInjectorProfilerContext (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=e3a00875:869:3)
+    at R3Injector.hydrate (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=e3a00875:1561:20)
+    at R3Injector.get (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/_resource-chunk-Bu3O9gHr.js?v=e3a00875:1479:37)
+    at def.getStandaloneInjector (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=61759906:8024:27)
+    at createRootViewInjector (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=e3a00875:7143:117)
+    at ComponentFactory.create (http://localhost:4200/@fs/C:/Users/alped/OneDrive/Desktop/Vestia/.angular/cache/22.1.4/vestia/vite/deps/core-Tu1HA-ZA.js?v=e3a00875:7203:29)
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names          |  Raw size
+main.js             | main           | 550.74 kB | 
+chunk-O64VBPRZ.js   | -              |   1.60 kB | 
+
+Lazy chunk files    | Names          |  Raw size
+chunk-LY72VGY3.js   | exchanges-page |  22.44 kB | 
+
+Application bundle generation complete. [4.223 seconds] - 2026-08-13T17:50:05.197Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 551.06 kB | 
+
+Application bundle generation complete. [1.743 seconds] - 2026-08-13T17:55:09.003Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names           |  Raw size
+main.js             | main            | 551.29 kB | 
+chunk-PO3EBWG4.js   | -               |   3.26 kB | 
+
+Lazy chunk files    | Names           |  Raw size
+chunk-6MIL7QP3.js   | pos-page        |  38.03 kB | 
+chunk-DZE3YVJY.js   | exchanges-page  |  22.44 kB | 
+chunk-LZFXHE5H.js   | operations-page |  15.55 kB | 
+
+Application bundle generation complete. [0.886 seconds] - 2026-08-13T17:55:49.721Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.786 seconds] - 2026-08-13T17:56:51.077Z
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2554: Expected 1 arguments, but got 2.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/users/pages/users-page/users-page.ts:97:37:
+[37m      97 │       this.userService.create(value, [32mbusinessId[37m);
+         ╵                                      [32m~~~~~~~~~~[0m
+
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 551.80 kB | 
+styles.css          | styles                     |  41.70 kB | 
+chunk-YLRTKPGR.js   | -                          |   5.57 kB | 
+chunk-PO3EBWG4.js   | -                          |   3.26 kB | 
+chunk-MT3OJFO2.js   | -                          |   2.10 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-ACNATLQV.js   | -                          |   1.73 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 613.16 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-6MIL7QP3.js   | pos-page                   |  38.03 kB | 
+chunk-WXIWMQFD.js   | business-provisioning-page |  29.01 kB | 
+chunk-DZE3YVJY.js   | exchanges-page             |  22.44 kB | 
+chunk-ZYBKC6TV.js   | reports-page               |  19.01 kB | 
+chunk-LZFXHE5H.js   | operations-page            |  15.55 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.858 seconds] - 2026-08-13T17:57:37.905Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 551.80 kB | 
+styles.css          | styles                     |  41.70 kB | 
+chunk-YLRTKPGR.js   | -                          |   5.57 kB | 
+chunk-PO3EBWG4.js   | -                          |   3.26 kB | 
+chunk-MT3OJFO2.js   | -                          |   2.10 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-ACNATLQV.js   | -                          |   1.73 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 613.16 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-6MIL7QP3.js   | pos-page                   |  38.03 kB | 
+chunk-WXIWMQFD.js   | business-provisioning-page |  29.01 kB | 
+chunk-DZE3YVJY.js   | exchanges-page             |  22.44 kB | 
+chunk-ZYBKC6TV.js   | reports-page               |  19.01 kB | 
+chunk-LZFXHE5H.js   | operations-page            |  15.55 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.322 seconds] - 2026-08-13T17:58:27.971Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 552.17 kB | 
+
+Application bundle generation complete. [2.994 seconds] - 2026-08-13T18:01:51.726Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 553.54 kB | 
+
+Application bundle generation complete. [1.124 seconds] - 2026-08-13T18:02:38.548Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 552.69 kB | 
+
+Application bundle generation complete. [0.583 seconds] - 2026-08-13T18:03:27.440Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 552.69 kB | 
+chunk-V2KHEVAS.js   | -                          |   5.57 kB | 
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-H64HUU5Q.js   | business-provisioning-page |  29.01 kB | 
+
+Application bundle generation complete. [0.770 seconds] - 2026-08-13T18:05:51.300Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 552.74 kB | 
+
+Application bundle generation complete. [0.716 seconds] - 2026-08-13T18:07:10.752Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 553.33 kB | 
+chunk-KOGDBB6S.js   | -                          |   5.74 kB | 
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-H5HGOSKU.js   | business-provisioning-page |  29.01 kB | 
+
+Application bundle generation complete. [2.565 seconds] - 2026-08-13T18:15:09.253Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names           |  Raw size
+main.js             | main            | 560.94 kB | 
+chunk-ZTHDC7FR.js   | -               |   3.44 kB | 
+
+Lazy chunk files    | Names           |  Raw size
+chunk-5CTZ5JRP.js   | pos-page        |  38.03 kB | 
+chunk-QJ7VLGZP.js   | exchanges-page  |  22.44 kB | 
+chunk-DYMKYMQ3.js   | operations-page |  15.55 kB | 
+
+Application bundle generation complete. [1.361 seconds] - 2026-08-13T18:17:39.054Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names    |  Raw size
+main.js             | main     | 560.94 kB | 
+
+Lazy chunk files    | Names    |  Raw size
+chunk-WBTOC2GH.js   | pos-page |  43.02 kB | 
+
+Application bundle generation complete. [1.337 seconds] - 2026-08-13T18:20:00.797Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names  |  Raw size
+main.js             | main   | 563.22 kB | 
+styles.css          | styles |  41.88 kB | 
+
+Application bundle generation complete. [1.417 seconds] - 2026-08-13T18:20:35.645Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 563.22 kB | 
+styles.css          | styles                     |  41.88 kB | 
+chunk-KOGDBB6S.js   | -                          |   5.74 kB | 
+chunk-ZTHDC7FR.js   | -                          |   3.44 kB | 
+chunk-MT3OJFO2.js   | -                          |   2.10 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-ACNATLQV.js   | -                          |   1.73 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 625.12 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-WBTOC2GH.js   | pos-page                   |  43.02 kB | 
+chunk-H5HGOSKU.js   | business-provisioning-page |  29.01 kB | 
+chunk-QJ7VLGZP.js   | exchanges-page             |  22.44 kB | 
+chunk-ZYBKC6TV.js   | reports-page               |  19.01 kB | 
+chunk-DYMKYMQ3.js   | operations-page            |  15.55 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.131 seconds] - 2026-08-13T18:24:35.133Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 563.22 kB | 
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-TMYPEW3E.js   | business-provisioning-page |  32.10 kB | 
+
+Application bundle generation complete. [0.739 seconds] - 2026-08-13T18:25:18.122Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 563.22 kB | 
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-NWCCCTDW.js   | business-provisioning-page |  32.74 kB | 
+
+Application bundle generation complete. [1.870 seconds] - 2026-08-13T18:26:58.296Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 563.56 kB | 
+
+Application bundle generation complete. [0.516 seconds] - 2026-08-13T18:29:33.156Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 563.56 kB | 
+styles.css          | styles                     |  41.88 kB | 
+chunk-KOGDBB6S.js   | -                          |   5.74 kB | 
+chunk-ZTHDC7FR.js   | -                          |   3.44 kB | 
+chunk-MT3OJFO2.js   | -                          |   2.10 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-ACNATLQV.js   | -                          |   1.73 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 625.46 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-WBTOC2GH.js   | pos-page                   |  43.02 kB | 
+chunk-NWCCCTDW.js   | business-provisioning-page |  32.74 kB | 
+chunk-QJ7VLGZP.js   | exchanges-page             |  22.44 kB | 
+chunk-ZYBKC6TV.js   | reports-page               |  19.01 kB | 
+chunk-DYMKYMQ3.js   | operations-page            |  15.55 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.169 seconds] - 2026-08-13T18:30:46.567Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 566.07 kB | 
+styles.css          | styles                     |  42.16 kB | 
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-ISYFUEDJ.js   | business-provisioning-page |  34.43 kB | 
+
+Application bundle generation complete. [1.143 seconds] - 2026-08-13T18:33:41.403Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [1.818 seconds] - 2026-08-13T18:39:52.298Z
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'settle' does not exist on type 'ReportService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/reports/pages/reports-page/reports-page.ts:1:1172:
+[37m      1 │ ...ement.set(await this.reports.[32msettle[37m(this.ownerId,this.from,this....
+        ╵                                 [32m~~~~~~[0m
+
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.809 seconds] - 2026-08-13T18:40:43.636Z
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'settle' does not exist on type 'ReportService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/reports/pages/reports-page/reports-page.ts:1:1172:
+[37m      1 │ ...ement.set(await this.reports.[32msettle[37m(this.ownerId,this.from,this....
+        ╵                                 [32m~~~~~~[0m
+
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.620 seconds] - 2026-08-13T18:40:51.425Z
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'settle' does not exist on type 'ReportService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/reports/pages/reports-page/reports-page.ts:1:1172:
+[37m      1 │ ...ement.set(await this.reports.[32msettle[37m(this.ownerId,this.from,this....
+        ╵                                 [32m~~~~~~[0m
+
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Application bundle generation failed. [0.862 seconds] - 2026-08-13T18:41:29.697Z
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'settle' does not exist on type 'ReportService'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/features/reports/pages/reports-page/reports-page.ts:1:1172:
+[37m      1 │ ...ement.set(await this.reports.[32msettle[37m(this.ownerId,this.from,this....
+        ╵                                 [32m~~~~~~[0m
+
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 592.74 kB | 
+styles.css          | styles                     |  42.16 kB | 
+chunk-KOGDBB6S.js   | -                          |   5.74 kB | 
+chunk-QICMRBV7.js   | -                          |   5.36 kB | 
+chunk-CG6LIP23.js   | -                          |   2.47 kB | 
+chunk-2ADMR4UW.js   | -                          |   2.17 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 657.65 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-YYLU7FH6.js   | operations-page            |  44.39 kB | 
+chunk-T5Q5YMS4.js   | pos-page                   |  43.02 kB | 
+chunk-ISYFUEDJ.js   | business-provisioning-page |  34.43 kB | 
+chunk-G2XXBG3U.js   | reports-page               |  28.43 kB | 
+chunk-MHY5MMN7.js   | exchanges-page             |  22.44 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.738 seconds] - 2026-08-13T18:42:06.865Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 609.67 kB | 
+
+Application bundle generation complete. [1.594 seconds] - 2026-08-13T18:42:58.829Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 610.89 kB | 
+
+Application bundle generation complete. [0.794 seconds] - 2026-08-13T18:44:10.321Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 611.00 kB | 
+
+Application bundle generation complete. [0.607 seconds] - 2026-08-13T18:44:27.019Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 611.19 kB | 
+
+Application bundle generation complete. [0.429 seconds] - 2026-08-13T18:44:38.513Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names    |  Raw size
+main.js             | main     | 600.66 kB | 
+chunk-GJP3HNOY.js   | -        |  12.86 kB | 
+
+Lazy chunk files    | Names    |  Raw size
+chunk-AV6ZY7A5.js   | pos-page |  46.38 kB | 
+
+Application bundle generation complete. [0.831 seconds] - 2026-08-13T18:45:45.998Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 600.45 kB | 
+
+Application bundle generation complete. [0.787 seconds] - 2026-08-13T18:45:48.880Z
+
+Component update sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names           |  Raw size
+main.js             | main            | 614.02 kB | 
+chunk-UITF22IP.js   | -               |   5.36 kB | 
+
+Lazy chunk files    | Names           |  Raw size
+chunk-SCEOESOK.js   | pos-page        |  46.38 kB | 
+chunk-AUMN3DX5.js   | operations-page |  44.39 kB | 
+chunk-FWB6P5D6.js   | exchanges-page  |  22.44 kB | 
+
+Application bundle generation complete. [0.830 seconds] - 2026-08-13T18:46:42.720Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 617.03 kB | 
+
+Application bundle generation complete. [0.912 seconds] - 2026-08-13T18:47:07.610Z
+
+Page reload sent to client(s).
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names                      |  Raw size
+main.js             | main                       | 617.03 kB | 
+styles.css          | styles                     |  42.16 kB | 
+chunk-GJP3HNOY.js   | -                          |  12.86 kB | 
+chunk-KOGDBB6S.js   | -                          |   5.74 kB | 
+chunk-UITF22IP.js   | -                          |   5.36 kB | 
+chunk-2ADMR4UW.js   | -                          |   2.17 kB | 
+chunk-45FGM6E5.js   | -                          |   2.06 kB | 
+chunk-SMRSJKJM.js   | -                          |   2.06 kB | 
+chunk-O64VBPRZ.js   | -                          |   1.60 kB | 
+chunk-ML6CDQLK.js   | -                          |   1.30 kB | 
+
+                    | Initial total              | 692.33 kB
+
+Lazy chunk files    | Names                      |  Raw size
+chunk-SCEOESOK.js   | pos-page                   |  46.38 kB | 
+chunk-AUMN3DX5.js   | operations-page            |  44.39 kB | 
+chunk-ISYFUEDJ.js   | business-provisioning-page |  34.43 kB | 
+chunk-G2XXBG3U.js   | reports-page               |  28.43 kB | 
+chunk-FWB6P5D6.js   | exchanges-page             |  22.44 kB | 
+chunk-7VXEC4PL.js   | labels-page                |  12.30 kB | 
+
+Application bundle generation complete. [0.191 seconds] - 2026-08-13T18:47:17.725Z
+
+> Changes detected. Rebuilding...
+√ Changes detected. Rebuilding...
+Initial chunk files | Names |  Raw size
+main.js             | main  | 617.07 kB | 
+
+Application bundle generation complete. [1.460 seconds] - 2026-08-13T18:47:39.677Z
+
+Page reload sent to client(s).

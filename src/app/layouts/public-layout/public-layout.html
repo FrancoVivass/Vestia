@@ -1,0 +1,95 @@
+<div class="min-h-screen">
+  <header
+    class="sticky top-0 z-50 transition-all duration-300"
+    [class.px-3]="!scrolled()"
+    [class.px-4]="scrolled()"
+    [class.pt-3]="!scrolled()"
+    [class.pt-4]="scrolled()"
+  >
+    <div
+      class="mx-auto max-w-7xl rounded-[1.75rem] border border-transparent px-4 py-3 transition-all duration-300 md:px-6"
+      [class.border-[var(--color-border)]]="scrolled()"
+      [class.bg-[rgba(255,253,249,0.78)]]="scrolled()"
+      [class.shadow-[0_10px_35px_rgba(59,42,32,0.08)]]="scrolled()"
+      [class.backdrop-blur-xl]="scrolled()"
+    >
+      <div class="flex items-center justify-between gap-4">
+        <a routerLink="/" class="flex items-center gap-3" aria-label="VESTIA inicio">
+          <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-white p-1.5 shadow-sm">
+            <img src="vestia-logo.png" alt="" class="h-full w-full object-contain" />
+          </div>
+          <div>
+            <p class="text-lg font-semibold tracking-[0.18em] text-[var(--color-text)]">VESTIA</p>
+            <p class="text-xs text-[var(--color-muted)]">Gestión inteligente para tu comercio</p>
+          </div>
+        </a>
+
+        <nav class="hidden items-center gap-2 lg:flex">
+          @for (item of navItems; track item.href) {
+            <a
+              [href]="item.href"
+              class="rounded-full px-4 py-2 text-sm font-medium text-[var(--color-text)] transition hover:bg-white hover:shadow-sm"
+            >
+              {{ item.label }}
+            </a>
+          }
+        </nav>
+
+        <div class="hidden lg:block">
+          <a
+            routerLink="/login"
+            class="inline-flex items-center justify-center rounded-full bg-[var(--color-primary)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
+          >
+            INICIAR SESIÓN
+          </a>
+        </div>
+
+        <button
+          type="button"
+          class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border border-[var(--color-border)] bg-[var(--color-surface)] text-xl text-[var(--color-text)] transition hover:border-[var(--color-primary)] lg:hidden"
+          (click)="toggleMobileMenu()"
+          aria-label="Abrir menú"
+        >
+          {{ mobileMenuOpen() ? '✕' : '☰' }}
+        </button>
+      </div>
+
+      @if (mobileMenuOpen()) {
+        <div class="mt-4 rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-surface)] p-3 shadow-lg fade-in lg:hidden">
+          <nav class="flex flex-col gap-2">
+            @for (item of navItems; track item.href) {
+              <a
+                [href]="item.href"
+                class="rounded-2xl px-4 py-3 text-sm font-medium text-[var(--color-text)] transition hover:bg-[var(--color-background)]"
+                (click)="closeMobileMenu()"
+              >
+                {{ item.label }}
+              </a>
+            }
+
+            <a
+              routerLink="/login"
+              class="mt-2 inline-flex items-center justify-center rounded-2xl bg-[var(--color-primary)] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-primary-dark)]"
+              (click)="closeMobileMenu()"
+            >
+              Iniciar sesión
+            </a>
+          </nav>
+        </div>
+      }
+    </div>
+  </header>
+
+  <main>
+    <router-outlet />
+  </main>
+</div>
+
+<div class="floating-actions" aria-label="Acciones rápidas">
+  <button type="button" class="floating-button theme-button" (click)="theme.toggle()" [attr.aria-label]="theme.dark()?'Activar modo claro':'Activar modo oscuro'" [title]="theme.dark()?'Modo claro':'Modo oscuro'">
+    @if(theme.dark()){<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg>}@else{<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>}
+  </button>
+  <a class="floating-button whatsapp-button" href="https://wa.me/542245421367?text=Hola%2C%20quiero%20informaci%C3%B3n%20sobre%20VESTIA" target="_blank" rel="noopener noreferrer" aria-label="Contactar a VESTIA por WhatsApp" title="WhatsApp: +54 2245 421367">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 3.5A11.8 11.8 0 0 0 12.1 0C5.6 0 .3 5.3.3 11.8c0 2.1.6 4.2 1.6 6L.2 24l6.4-1.7a11.7 11.7 0 0 0 5.5 1.4h.1c6.5 0 11.8-5.3 11.8-11.8 0-3.2-1.2-6.2-3.5-8.4ZM12.2 21.7h-.1a9.8 9.8 0 0 1-5-1.4l-.4-.2-3.8 1 1-3.7-.2-.4a9.8 9.8 0 1 1 8.5 4.7Zm5.4-7.3c-.3-.1-1.8-.9-2-.9-.3-.1-.5-.1-.7.2-.2.3-.8.9-1 1.1-.2.2-.4.2-.7.1-1.8-.9-3-1.6-4.2-3.7-.3-.6.3-.5.9-1.7.1-.2 0-.4 0-.6l-.9-2.1c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.6.1-.9.4-.3.3-1.2 1.2-1.2 2.9s1.3 3.4 1.4 3.6c.2.2 2.5 3.8 6 5.3.8.4 1.5.6 2 .7.8.3 1.6.2 2.2.1.7-.1 1.8-.7 2-1.4.3-.7.3-1.3.2-1.4-.1-.1-.3-.2-.6-.3Z"></path></svg>
+  </a>
+</div>

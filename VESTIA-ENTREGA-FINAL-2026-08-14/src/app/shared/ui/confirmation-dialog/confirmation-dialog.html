@@ -1,0 +1,10 @@
+<app-modal
+  [open]="modal.state().open"
+  [title]="modal.state().title ?? ''"
+  [description]="modal.state().description ?? ''"
+  [loading]="modal.state().loading ?? false"
+  [confirmLabel]="modal.state().confirmLabel ?? 'Confirmar'"
+  [cancelLabel]="modal.state().cancelLabel ?? 'Cancelar'"
+  (closed)="modal.close()"
+  (confirmed)="modal.close()"
+/>

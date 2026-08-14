@@ -1,0 +1,5 @@
+:host {
+  display: block;
+}
+
+.floating-actions{position:fixed;right:1.25rem;bottom:1.25rem;z-index:35;display:flex;flex-direction:column;gap:.75rem}.floating-button{display:grid;width:3.35rem;height:3.35rem;place-items:center;border:0;border-radius:50%;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .15s ease,box-shadow .15s ease}.floating-button:hover{transform:translateY(-2px);box-shadow:0 11px 28px rgba(0,0,0,.28)}.floating-button svg{width:1.55rem;height:1.55rem;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.theme-button{background:var(--color-primary);color:white}.whatsapp-button{background:#25d366;color:white}.whatsapp-button svg{fill:currentColor;stroke:none}@media(max-width:640px){.floating-actions{right:.8rem;bottom:.8rem}.floating-button{width:3rem;height:3rem}}

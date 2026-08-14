@@ -1,0 +1,62 @@
+<app-drawer [open]="open" (closed)="closed.emit()">
+  @if (product) {
+    <div class="h-full overflow-y-auto p-5">
+      <div class="mb-5 flex items-center justify-between gap-3">
+        <div>
+          <p class="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">Detalle</p>
+          <h3 class="mt-2 text-2xl font-semibold">{{ product.name }}</h3>
+        </div>
+        <button type="button" class="text-lg" (click)="closed.emit()">✕</button>
+      </div>
+
+      <div class="space-y-5">
+        <div class="rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+          <p class="text-sm text-[var(--color-muted)]">SKU</p>
+          <p class="mt-1 font-semibold">{{ product.sku }}</p>
+          <p class="mt-3 text-sm text-[var(--color-muted)]">Código interno: {{ product.internalCode }}</p>
+          <p class="mt-1 text-sm text-[var(--color-muted)]">Código de barras: {{ product.barcode }}</p>
+        </div>
+
+        <div class="rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+          <p class="text-sm text-[var(--color-muted)]">Categoría y marca</p>
+          <p class="mt-1 font-semibold">{{ categoryName }} · {{ brandName }}</p>
+          <p class="mt-3 text-sm leading-7 text-[var(--color-muted)]">{{ product.description }}</p>
+        </div>
+
+        <div class="rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+          <p class="text-sm text-[var(--color-muted)]">Precios</p>
+          <div class="mt-3 grid grid-cols-2 gap-3 text-sm">
+            <div>Compra: <strong>$ {{ product.purchasePrice.toLocaleString('es-AR') }}</strong></div>
+            <div>Venta: <strong>$ {{ product.salePrice.toLocaleString('es-AR') }}</strong></div>
+            <div>Promo: <strong>{{ product.promotionalPrice ? '$ ' + product.promotionalPrice.toLocaleString('es-AR') : '—' }}</strong></div>
+            <div>Margen: <strong>{{ product.margin }}%</strong></div>
+          </div>
+        </div>
+
+        <div class="rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+          <p class="text-sm text-[var(--color-muted)]">Imágenes</p>
+          <div class="mt-4 grid grid-cols-2 gap-3">
+            @for (image of product.images; track image.id) {
+              <img [src]="image.url" [alt]="product.name" class="h-28 w-full rounded-2xl object-cover" />
+            }
+          </div>
+        </div>
+
+        <div class="rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+          <p class="text-sm text-[var(--color-muted)]">Variantes</p>
+          <div class="mt-4 space-y-3">
+            @for (variant of product.variants; track variant.id) {
+              <div class="rounded-2xl border border-[var(--color-border)] px-3 py-3 text-sm">
+                <div class="flex items-center justify-between gap-3">
+                  <span class="font-medium">{{ variant.name }}</span>
+                  <span>{{ variant.stock }} u.</span>
+                </div>
+                <p class="mt-2 text-[var(--color-muted)]">SKU {{ variant.sku }} · Código {{ variant.barcode }}</p>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</app-drawer>

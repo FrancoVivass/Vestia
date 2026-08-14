@@ -1,0 +1,39 @@
+<header class="space-y-4 rounded-[2rem] border border-[var(--color-border)] bg-[var(--color-surface)] px-5 py-4 shadow-sm">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div class="flex items-center gap-3">
+      <button type="button" class="rounded-full border border-[var(--color-border)] px-3 py-2 text-sm" (click)="theme.toggle()" [attr.aria-label]="theme.dark()?'Activar modo claro':'Activar modo oscuro'">{{theme.dark()?'Claro':'Oscuro'}}</button>
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-lg lg:hidden"
+        (click)="toggleSidebar()"
+        aria-label="Abrir menú"
+      >
+        ☰
+      </button>
+
+      <app-breadcrumb />
+    </div>
+
+    <div class="flex items-center gap-3">
+      <app-notification-menu />
+      <app-user-menu />
+    </div>
+  </div>
+
+  @if (activeBusinessName(); as businessName) {
+    <div class="flex flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-[var(--color-border)] bg-white px-4 py-3">
+      <div class="flex items-center gap-3">
+        @if (activeBusinessLogo(); as logo) {
+          <img [src]="logo" [alt]="'Logo de ' + businessName" class="h-12 w-12 rounded-xl border border-[var(--color-border)] object-contain" />
+        } @else {
+          <span class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--color-primary)] font-bold text-white">{{ businessName.charAt(0) }}</span>
+        }
+        <div>
+        <p class="text-xs uppercase tracking-[0.16em] text-[var(--color-muted)]">Contexto activo</p>
+        <p class="mt-1 text-sm font-semibold text-[var(--color-text)]">Administrando: {{ businessName }}</p>
+        </div>
+      </div>
+
+    </div>
+  }
+</header>

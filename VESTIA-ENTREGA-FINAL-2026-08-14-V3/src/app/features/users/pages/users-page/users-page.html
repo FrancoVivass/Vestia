@@ -1,0 +1,111 @@
+<section class="space-y-6">
+  <div class="flex flex-wrap items-center justify-between gap-4">
+    <div>
+      <p class="text-sm uppercase tracking-[0.18em] text-[var(--color-muted)]">Usuarios</p>
+      <h2 class="mt-2 text-3xl font-semibold">Administración de usuarios y accesos</h2>
+      <p class="mt-3 max-w-3xl text-sm leading-7 text-[var(--color-muted)]">
+        Gestioná usuarios, roles y permisos del comercio actual con una política RBAC preparada para RLS.
+      </p>
+    </div>
+
+    @if (canCreate()) {
+      <app-button label="Crear usuario" (buttonClick)="openCreateModal()" />
+    }
+  </div>
+
+  <div class="surface-card p-5">
+    <form [formGroup]="filtersForm" class="grid gap-4 xl:grid-cols-[1fr_200px_200px]">
+      <div>
+        <label class="mb-2 block text-sm font-medium">Buscar</label>
+        <input
+          type="text"
+          formControlName="search"
+          class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+          placeholder="Nombre o email"
+        />
+      </div>
+      <div>
+        <label class="mb-2 block text-sm font-medium">Rol</label>
+        <select formControlName="role" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]">
+          <option value="all">Todos</option>
+          <option value="CASHIER">Cajero</option>
+          <option value="OWNER">Dueño</option>
+        </select>
+      </div>
+      <div>
+        <label class="mb-2 block text-sm font-medium">Estado</label>
+        <select formControlName="status" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]">
+          <option value="all">Todos</option>
+          <option value="active">Activos</option>
+          <option value="inactive">Inactivos</option>
+        </select>
+      </div>
+    </form>
+  </div>
+
+  @if (canView()) {
+    <div class="space-y-4">
+      @for (user of filteredUsers(); track user.id) {
+        <article class="surface-card p-5">
+          <div class="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
+            <div>
+              <div class="flex flex-wrap items-center gap-3">
+                <h3 class="text-xl font-semibold">{{ user.fullName }}</h3>
+                <app-badge [label]="user.status === 'active' ? 'Activo' : 'Inactivo'" [variant]="user.status === 'active' ? 'success' : 'warning'" />
+                <app-badge [label]="user.role" variant="neutral" />
+              </div>
+              <p class="mt-2 text-sm text-[var(--color-muted)]">{{ user.email }}</p>
+              <p class="mt-2 text-xs uppercase tracking-[0.14em] text-[var(--color-muted)]">
+                Creado: {{ user.createdAt | date: 'dd/MM/yyyy' }}
+              </p>
+
+              <div class="mt-4 flex flex-wrap gap-2">
+                @for (permission of user.permissions; track permission) {
+                  <span class="rounded-full bg-[var(--color-background)] px-3 py-1 text-xs text-[var(--color-text)]">
+                    {{ permissionLabel(permission) }}
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="flex flex-wrap gap-3">
+              @if (canEdit()) {
+                <button
+                  type="button"
+                  class="rounded-2xl border border-[var(--color-border)] px-4 py-2 text-sm font-medium transition hover:border-[var(--color-primary)]"
+                  (click)="openEditModal(user)"
+                >
+                  Editar
+                </button>
+              }
+              @if (canDelete()) {
+                <button
+                  type="button"
+                  class="rounded-2xl border border-[var(--color-border)] px-4 py-2 text-sm font-medium transition hover:border-[var(--color-primary)]"
+                  (click)="toggleUserStatus(user)"
+                >
+                  {{ user.status === 'active' ? 'Desactivar' : 'Activar' }}
+                </button>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  } @else {
+    <div class="surface-card p-8 text-center">
+      <p class="text-lg font-semibold">No tenés permiso para ver usuarios</p>
+      <p class="mt-3 text-sm text-[var(--color-muted)]">
+        Solicitá acceso a un administrador del comercio.
+      </p>
+    </div>
+  }
+
+  <app-user-form-modal
+    [open]="modalOpen()"
+    [user]="editingUser()"
+    [loading]="saving()"
+    (closed)="closeModal()"
+    (saved)="saveUser($event)"
+  />
+</section>

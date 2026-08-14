@@ -1,0 +1,32 @@
+<section>
+  <header><div><p>OPERACIONES</p><h1>Inventario físico y movimientos</h1><span>Conteos controlados, gastos trazables y movimientos de caja.</span></div></header>
+
+  <article class="inventory-panel">
+    <div class="section-head"><div><h2>Inventario físico</h2><p>Compará el stock del sistema con el conteo real antes de aplicar ajustes.</p></div>
+      @if(inventory()){<span class="pill">EN PROCESO</span>}
+    </div>
+    @if(!inventory()){
+      <div class="start"><label>Observación inicial<textarea [(ngModel)]="inventoryNotes"></textarea></label><button (click)="startInventory()" [disabled]="loading()">Iniciar inventario</button></div>
+    }@else{
+      <div class="inventory-table"><table><thead><tr><th>Producto</th><th>Variante</th><th>Dueño</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead><tbody>
+        @for(item of inventory()!.physical_inventory_items;track item.id){<tr><td><b>{{item.product_variants.products.name}}</b><small>{{item.product_variants.sku}}</small></td><td>{{item.product_variants.colors?.name||'—'}} / {{item.product_variants.sizes?.name||'—'}}</td><td>{{item.owners.first_name}} {{item.owners.last_name}}</td><td>{{item.expected_quantity}}</td><td><input type="number" min="0" [ngModel]="count(item)" (ngModelChange)="setCount(item,$event)"></td><td><b [class.positive]="(difference(item)??0)>0" [class.negative]="(difference(item)??0)<0">{{difference(item)===null?'—':difference(item)}}</b></td></tr>}
+      </tbody></table></div>
+      <footer><button class="secondary" (click)="saveCounts()" [disabled]="loading()">Guardar conteo</button><button (click)="completeInventory()" [disabled]="loading()">Confirmar y ajustar stock</button></footer>
+    }
+  </article>
+
+  <div class="panels">
+    <article><h2>Registrar gasto</h2>@if(session()){
+      <label>Concepto<input [(ngModel)]="expenseConcept"></label><div class="two"><label>Categoría<input [(ngModel)]="expenseCategory"></label><label>Importe<input type="number" min="0.01" [(ngModel)]="expenseAmount"></label></div>
+      <div class="two"><label>Tipo de pago<select [(ngModel)]="expenseMethodId">@for(method of methods();track method.id){<option [value]="method.id">{{method.name}}</option>}</select></label><label>Asignación<select [(ngModel)]="expenseOwnerId"><option value="">Gasto general</option>@for(owner of owners();track owner.id){<option [value]="owner.id">{{owner.first_name}} {{owner.last_name}}</option>}</select></label></div>
+      <label>Fecha<input type="datetime-local" [(ngModel)]="expenseDate"></label><label>Observación<textarea [(ngModel)]="expenseNotes"></textarea></label><button (click)="registerExpense()" [disabled]="loading()">Registrar gasto</button>
+    }@else{<p>Abrí una caja para registrar gastos.</p>}</article>
+    <article><h2>Otro movimiento de caja</h2>@if(session()){
+      <label>Tipo<select [(ngModel)]="movementType"><option value="INCOME">Ingreso</option><option value="WITHDRAWAL">Retiro</option></select></label><label>Importe<input type="number" min="0.01" [(ngModel)]="movementAmount"></label><label>Descripción<textarea [(ngModel)]="movementDescription"></textarea></label><button (click)="registerMovement()" [disabled]="loading()">Registrar movimiento</button>
+    }@else{<p>No existe una caja abierta.</p>}</article>
+  </div>
+
+  <article><h2>Últimos gastos</h2><div class="inventory-table"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Asignación</th><th>Tipo de pago</th><th>Importe</th></tr></thead><tbody>
+    @for(expense of expenses();track expense.id){<tr><td>{{expense.occurred_at|date:'dd/MM/yyyy HH:mm'}}</td><td>{{expense.concept}}</td><td>{{expense.category}}</td><td>{{ownerName(expense)}}</td><td>{{expense.payment_methods?.name||'Sin especificar'}}</td><td><b>{{expense.amount|currency:'ARS':'symbol-narrow'}}</b></td></tr>}@empty{<tr><td colspan="6">Todavía no hay gastos registrados.</td></tr>}
+  </tbody></table></div></article>
+</section>

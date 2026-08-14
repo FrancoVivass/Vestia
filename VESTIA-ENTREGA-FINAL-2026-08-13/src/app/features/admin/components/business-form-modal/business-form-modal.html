@@ -1,0 +1,110 @@
+<app-modal
+  [open]="open"
+  [title]="business ? 'Editar comercio' : 'Crear comercio'"
+  [description]="'Completá los datos del comercio para administrarlo dentro de VESTIA.'"
+  [loading]="loading || uploadLoading()"
+  [confirmLabel]="business ? 'Guardar cambios' : 'Crear comercio'"
+  cancelLabel="Cancelar"
+  (closed)="closed.emit()"
+  (confirmed)="onSubmit()"
+>
+  <div class="grid gap-4 md:grid-cols-2">
+    <div>
+      <label class="mb-2 block text-sm font-medium">Nombre</label>
+      <input
+        type="text"
+        [formControl]="form.controls.name"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="Tienda Central"
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-medium">Razón social</label>
+      <input
+        type="text"
+        [formControl]="form.controls.legalName"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="Tienda Central S.R.L."
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-medium">CUIT</label>
+      <input
+        type="text"
+        [formControl]="form.controls.taxId"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="30-12345678-9"
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-medium">Email</label>
+      <input
+        type="email"
+        [formControl]="form.controls.email"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="admin@comercio.com"
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-medium">Teléfono</label>
+      <input
+        type="text"
+        [formControl]="form.controls.phone"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="+54 11 1234 5678"
+      />
+    </div>
+
+    <div>
+      <label class="mb-2 block text-sm font-medium">Dirección</label>
+      <input
+        type="text"
+        [formControl]="form.controls.address"
+        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
+        placeholder="Av. Siempre Viva 123"
+      />
+    </div>
+  </div>
+
+  <div class="mt-5 rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
+    <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+      <div>
+        <p class="text-sm font-medium">Logo del comercio</p>
+        <p class="mt-1 text-sm text-[var(--color-muted)]">
+          Preparado para Supabase Storage con bucket sugerido: <code>business-assets</code>.
+        </p>
+      </div>
+
+      <label class="inline-flex cursor-pointer items-center justify-center rounded-2xl border border-[var(--color-border)] px-4 py-2 text-sm font-medium transition hover:border-[var(--color-primary)]">
+        Subir logo
+        <input type="file" accept="image/*" class="hidden" (change)="onFileSelected($event)" />
+      </label>
+    </div>
+
+    <div class="mt-4 flex items-center gap-4">
+      <div class="flex h-20 w-20 items-center justify-center overflow-hidden rounded-[1.5rem] border border-[var(--color-border)] bg-[var(--color-background)]">
+        @if (previewUrl()) {
+          <img [src]="previewUrl()" alt="Preview del logo" class="h-full w-full object-cover" />
+        } @else {
+          <span class="text-xs uppercase tracking-[0.14em] text-[var(--color-muted)]">Sin logo</span>
+        }
+      </div>
+
+      <div>
+        @if (uploadLoading()) {
+          <p class="text-sm text-[var(--color-muted)]">Subiendo logo...</p>
+        }
+        @if (uploadError()) {
+          <p class="text-sm text-[var(--color-danger)]">{{ uploadError() }}</p>
+        }
+        @if (!uploadLoading() && !uploadError()) {
+          <p class="text-sm text-[var(--color-muted)]">Vista previa lista para el comercio.</p>
+        }
+      </div>
+    </div>
+  </div>
+</app-modal>

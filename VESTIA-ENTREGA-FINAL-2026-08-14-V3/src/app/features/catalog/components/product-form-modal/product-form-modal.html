@@ -1,0 +1,62 @@
+<app-modal
+  [open]="open"
+  [wide]="true"
+  [title]="product ? 'Editar producto' : 'Nuevo producto'"
+  [description]="'Paso ' + step() + ' de 3 · ' + (step()===1?'Datos generales':step()===2?'Variantes y códigos':'Imágenes y confirmación')"
+  [loading]="saving || uploadLoading()"
+  [confirmLabel]="step()<3?'Siguiente':(product?'Guardar cambios':'Guardar y crear etiqueta')"
+  [cancelLabel]="step()>1?'Anterior':'Cancelar'"
+  (closed)="backOrClose()"
+  (confirmed)="nextOrSubmit()"
+>
+  <div class="steps"><span [class.active]="step()===1">1. Producto</span><span [class.active]="step()===2">2. Variantes</span><span [class.active]="step()===3">3. Etiqueta</span></div>
+  <div class="max-h-[65vh] overflow-y-auto pr-2">
+    @if (step() === 1) {
+      <div class="mb-4 flex justify-end"><button type="button" class="rounded-xl border border-[var(--color-border)] px-3 py-2 text-sm" (click)="generateCodes()">Generar códigos automáticamente</button></div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <label>Nombre *<input [formControl]="form.controls.name"></label>
+        <label>SKU *<input [formControl]="form.controls.sku"></label>
+        <label>Código interno *<input [formControl]="form.controls.internalCode"></label>
+        <label>Código de barras *<input [formControl]="form.controls.barcode"></label>
+        <label class="md:col-span-2">Descripción<textarea rows="3" [formControl]="form.controls.description"></textarea></label>
+        <label>Categoría (opcional)<select [formControl]="form.controls.categoryId"><option value="">Sin categoría</option>@for(category of categories;track category.id){<option [value]="category.id">{{category.name}}</option>}</select></label>
+        <label>Marca (opcional)<select [formControl]="form.controls.brandId"><option value="">Sin marca</option>@for(brand of brands;track brand.id){<option [value]="brand.id">{{brand.name}}</option>}</select></label>
+        <label>Precio de compra *<input type="number" min="0" [formControl]="form.controls.purchasePrice"></label>
+        <label>Precio de venta *<input type="number" min="0" [formControl]="form.controls.salePrice"></label>
+        <label>Precio promocional<input type="number" min="0" [formControl]="form.controls.promotionalPrice"></label>
+        <label>Margen<div class="readonly">{{margin()}}%</div></label>
+        <label>Stock mínimo *<input type="number" min="0" [formControl]="form.controls.minStock"></label>
+        <label>Stock máximo *<input type="number" min="0" [formControl]="form.controls.maxStock"></label>
+        <label>Estado<select [formControl]="form.controls.status"><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>
+      </div>
+      @if(!categories.length||!brands.length){<p class="notice">Podés guardar el producto sin categoría o marca y asignarlas más adelante.</p>}
+    }
+
+    @if (step() === 2) {
+      <div class="section-head"><div><h4>Variantes del producto</h4><p>Se crea una etiqueta automática por cada variante.</p></div><button type="button" (click)="addVariant()">Agregar variante</button></div>
+      <div class="variant-list">
+        @for(variant of variantsArray.controls;track $index){
+          <div [formGroup]="$any(variant)" class="variant">
+            <div class="variant-title"><b>Variante {{$index+1}}</b><button type="button" (click)="removeVariant($index)" [disabled]="variantsArray.length===1">Eliminar</button></div>
+            <div class="grid gap-3 md:grid-cols-3">
+              <label>Color *<input formControlName="color"></label>
+              <label>Talle *<input formControlName="size"></label>
+              <label>SKU *<input formControlName="sku"></label>
+              <label>Código de barras *<input formControlName="barcode"></label>
+              <label>Costo *<input type="number" min="0" formControlName="cost"></label>
+              <label>Precio *<input type="number" min="0" formControlName="price"></label>
+              <label>Estado<select formControlName="status"><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (step() === 3) {
+      <div class="review"><h4>Resumen</h4><p><b>{{form.controls.name.value}}</b> · {{variantsArray.length}} variante(s)</p><p>Al guardar se crearán las etiquetas CODE128 y se abrirá la impresión para comandera.</p></div>
+      <div class="section-head"><div><h4>Imágenes</h4><p>JPG, PNG o WEBP. Podés cargarlas ahora o editar el producto más tarde.</p></div><label class="upload">Subir imágenes<input type="file" multiple accept="image/*" (change)="onImageSelected($event)"></label></div>
+      @if(uploadError()){<p class="notice error">{{uploadError()}}</p>}
+      <div class="images">@for(image of imagesArray.controls;track $index){<article><img [src]="image.get('url')?.value" alt="Imagen del producto"><div><button type="button" (click)="moveImage($index,'up')">↑</button><button type="button" (click)="moveImage($index,'down')">↓</button><button type="button" (click)="removeImage($index)">Eliminar</button></div></article>}</div>
+    }
+  </div>
+</app-modal>

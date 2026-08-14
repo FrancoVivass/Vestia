@@ -1,0 +1,11 @@
+:host {
+  display: block;
+}
+
+a {
+  text-decoration: none;
+}
+
+section {
+  scroll-margin-top: 7rem;
+}

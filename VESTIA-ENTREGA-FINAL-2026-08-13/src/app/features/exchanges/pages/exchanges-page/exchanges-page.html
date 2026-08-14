@@ -1,0 +1,49 @@
+<section>
+  <header>
+    <p>POSVENTA</p>
+    <h1>Cambios</h1>
+    <span>Devolución y nueva salida en una única transacción.</span>
+  </header>
+  <form (ngSubmit)="search()">
+    <input type="number" name="number" [(ngModel)]="number" placeholder="Número de venta">
+    <button>Buscar</button>
+  </form>
+  @if (sale()) {
+    <article>
+      <h2>Producto devuelto</h2>
+      @for (item of sale().sale_items; track item.id) {
+        @for (allocation of item.sale_item_allocations; track allocation.id) {
+          <label class="choice">
+            <input type="radio" name="allocation" [value]="allocation.id" [(ngModel)]="allocationId" [disabled]="available(allocation) <= 0">
+            <span>{{item.product_variants.products.name}} · {{item.product_variants.sku}} · {{allocation.owners.first_name}} {{allocation.owners.last_name}} · disponible: {{available(allocation)}}</span>
+          </label>
+        }
+      }
+      <label>Cantidad devuelta<input type="number" min="1" [(ngModel)]="returnQuantity"></label>
+      <h2>Nuevo producto</h2>
+      <label>Variante / dueño
+        <select [(ngModel)]="stockKey">
+          @for (row of stock(); track row.variantId + row.ownerId) {
+            <option [value]="row.variantId + '|' + row.ownerId">{{row.productName}} · {{row.sku}} · {{row.ownerName}} · $ {{row.price}}</option>
+          }
+        </select>
+      </label>
+      <label>Cantidad nueva<input type="number" min="1" [(ngModel)]="newQuantity"></label>
+      <div class="difference"><span>Diferencia</span><b>$ {{difference()}}</b></div>
+      @if (difference() > 0) {
+        <p>El cliente paga: $ {{difference()}}</p>
+        <label>Tipo de pago del cobro
+          <select [(ngModel)]="methodId">@for (method of methods(); track method.id) {<option [value]="method.id">{{method.name}}</option>}</select>
+        </label>
+      } @else if (difference() < 0) {
+        <p>Devolver al cliente: $ {{-difference()}}</p>
+        <label>Tipo de pago de la devolución
+          <select [(ngModel)]="methodId">@for (method of methods(); track method.id) {<option [value]="method.id">{{method.name}}</option>}</select>
+        </label>
+      } @else {
+        <p>Cambio sin diferencia.</p>
+      }
+      <button (click)="submit()">Confirmar cambio</button>
+    </article>
+  }
+</section>

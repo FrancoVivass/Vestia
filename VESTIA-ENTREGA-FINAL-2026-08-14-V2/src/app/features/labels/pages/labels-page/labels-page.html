@@ -1,0 +1,40 @@
+<section>
+  <header>
+    <div>
+      <p>IMPRESIÓN</p>
+      <h1>Etiquetas y códigos de barras</h1>
+      <span>Incluyen producto, variante, dueño, precio, SKU y código CODE128.</span>
+    </div>
+    <button (click)="print()">Imprimir / guardar PDF</button>
+  </header>
+  <div class="controls">
+    <label>Variante
+      <select [(ngModel)]="variantId" (ngModelChange)="selectFirstOwner()">
+        @for (variant of variants(); track variant.id) {
+          <option [value]="variant.id">{{variant.products.name}} · {{variant.sku}} · {{variant.colors?.name || 'Sin color'}} / {{variant.sizes?.name || 'Sin talle'}}</option>
+        }
+      </select>
+    </label>
+    <label>Dueño
+      <select [(ngModel)]="ownerId" (ngModelChange)="redraw()">
+        @for (stock of owners; track stock.owner_id) {
+          <option [value]="stock.owner_id">{{stock.owners.first_name}} {{stock.owners.last_name}} · stock {{stock.quantity}}</option>
+        }
+      </select>
+    </label>
+    <label>Cantidad<input type="number" min="1" max="200" [(ngModel)]="quantity"></label>
+  </div>
+  <div class="sheet" [style.--columns]="settings().columns" [style.--label-width]="settings().width + 'mm'" [style.--label-height]="settings().height + 'mm'">
+    @if (selected) {
+      @for (item of [].constructor(quantity); track $index) {
+        <article>
+          <strong>{{selected.products.name}}</strong>
+          <span>{{selected.colors?.name || '—'}} / {{selected.sizes?.name || '—'}} · {{selected.sku}}</span>
+          @if (selectedOwner) {<small>{{selectedOwner.owners.first_name}} {{selectedOwner.owners.last_name}}</small>}
+          <b>$ {{selected.price}}</b>
+          <svg [attr.data-barcode]="selected.barcode"></svg>
+        </article>
+      }
+    }
+  </div>
+</section>

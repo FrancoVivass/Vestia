@@ -1,0 +1,6 @@
+<app-modal [open]="open" [wide]="true" title="Etiqueta creada automáticamente" description="El producto ya está guardado. Seleccioná las variantes y enviá las etiquetas a la comandera." [loading]="printing()" confirmLabel="Imprimir en comandera" cancelLabel="Cerrar" (closed)="closed.emit()" (confirmed)="print()">
+  <div class="layout">
+    <div class="options"><h4>{{product?.name}}</h4><label>Cantidad por variante<input type="number" min="1" max="100" [(ngModel)]="quantity" (ngModelChange)="redraw()"></label><div class="checks">@for(variant of product?.variants??[];track variant.id){<label><input type="checkbox" [checked]="selected().includes(variant.id)" (change)="toggle(variant.id,$any($event.target).checked)"><span>{{variantName(variant)}} · {{variant.sku}}<small>{{variant.barcode}}</small></span></label>}</div></div>
+    <div class="preview"><p>Vista previa · papel térmico 80 mm</p><div class="automatic-label-sheet">@for(variant of variants();track variant.id){@for(copy of copies();track $index){<article class="label"><strong>{{product?.name}}</strong><span>{{variantName(variant)}} · {{variant.sku}}</span><b>$ {{variant.price}}</b><svg [attr.data-barcode]="variant.barcode"></svg></article>}}</div></div>
+  </div>
+</app-modal>

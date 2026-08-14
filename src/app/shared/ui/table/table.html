@@ -1,0 +1,22 @@
+<div class="overflow-hidden rounded-[2rem] border border-[var(--color-border)] bg-white">
+  <div class="overflow-x-auto">
+    <table class="min-w-full border-collapse text-left text-sm">
+      <thead class="bg-[var(--color-background)]">
+        <tr>
+          @for (header of headers; track header) {
+            <th class="px-4 py-3 font-semibold text-[var(--color-text)]">{{ header }}</th>
+          }
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows; track $index) {
+          <tr class="border-t border-[var(--color-border)]">
+            @for (cell of row; track $index) {
+              <td class="px-4 py-3 text-[var(--color-muted)]">{{ cell }}</td>
+            }
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+</div>

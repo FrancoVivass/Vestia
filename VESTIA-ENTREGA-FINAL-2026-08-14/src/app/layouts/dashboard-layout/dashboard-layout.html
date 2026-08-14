@@ -1,0 +1,24 @@
+<div class="min-h-screen lg:grid lg:grid-cols-[280px_1fr]">
+  <aside class="hidden border-r border-[var(--color-border)] bg-[var(--color-surface)] lg:block">
+    <app-sidebar />
+  </aside>
+
+  @if (navigation.sidebarOpen()) {
+    <div class="fixed inset-0 z-40 bg-black/30 lg:hidden" (click)="navigation.closeSidebar()">
+      <div
+        class="h-full w-[280px] bg-[var(--color-surface)] shadow-xl slide-up"
+        (click)="$event.stopPropagation()"
+      >
+        <app-sidebar />
+      </div>
+    </div>
+  }
+
+  <section class="flex min-h-screen flex-col p-4 md:p-6">
+    <app-header />
+
+    <main class="mt-6 flex-1">
+      <router-outlet />
+    </main>
+  </section>
+</div>

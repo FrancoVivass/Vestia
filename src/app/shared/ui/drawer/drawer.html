@@ -1,0 +1,7 @@
+@if (open) {
+  <div class="fixed inset-0 z-40 bg-black/30 fade-in" (click)="closed.emit()">
+    <div class="h-full w-[280px] bg-[var(--color-surface)] shadow-xl slide-up" (click)="$event.stopPropagation()">
+      <ng-content />
+    </div>
+  </div>
+}
