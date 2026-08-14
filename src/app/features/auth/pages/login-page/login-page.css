@@ -6,3 +6,9 @@ a,
 button {
   text-decoration: none;
 }
+
+.login-lottie {
+  width: 280px;
+  height: 280px;
+  margin-bottom: 1.5rem;
+}

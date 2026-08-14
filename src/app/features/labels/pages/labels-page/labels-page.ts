@@ -32,6 +32,7 @@ export class LabelsPageComponent implements OnInit, AfterViewChecked {
   private readonly toast = inject(ToastService);
   readonly variants = signal<LabelVariant[]>([]);
   readonly settings = signal({ width: 50, height: 30, columns: 3 });
+  readonly showPrice = signal(true);
   variantId = '';
   ownerId = '';
   quantity = 1;

@@ -9,3 +9,34 @@ a {
 section {
   scroll-margin-top: 7rem;
 }
+
+.section-lottie {
+  width: 180px;
+  height: 180px;
+  margin: 1.5rem auto 0;
+}
+
+.funciones-lottie {
+  width: 320px;
+  height: 320px;
+  margin: 0 auto 1.5rem;
+}
+
+.contacto-lottie {
+  width: 260px;
+  height: 260px;
+  margin-bottom: 1rem;
+}
+
+.fade-in-card {
+  opacity: 0;
+  transform: translateY(16px);
+  animation: fadeInCard 0.4s ease forwards;
+}
+
+@keyframes fadeInCard {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

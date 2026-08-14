@@ -1,4 +1,4 @@
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, computed, ElementRef, OnDestroy, OnInit, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { AuthFeedback } from '../../../../core/models/auth.model';
@@ -11,12 +11,14 @@ import { ToastService } from '../../../../core/services/toast.service';
   templateUrl: './login-page.html',
   styleUrl: './login-page.css',
 })
-export class LoginPageComponent {
+export class LoginPageComponent implements OnInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly toast = inject(ToastService);
+  private readonly el = inject(ElementRef);
+  private anim: any;
 
   readonly loading = signal(false);
   readonly resetLoading = signal(false);
@@ -30,6 +32,21 @@ export class LoginPageComponent {
 
   readonly emailControl = computed(() => this.form.controls.email);
   readonly passwordControl = computed(() => this.form.controls.password);
+
+  async ngOnInit(): Promise<void> {
+    const lottie = await import('lottie-web');
+    this.anim = lottie.default.loadAnimation({
+      container: this.el.nativeElement.querySelector('#login-lottie'),
+      renderer: 'svg',
+      loop: true,
+      autoplay: true,
+      path: 'assets/Login.json',
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.anim?.destroy();
+  }
 
   constructor() {
     const reason = this.route.snapshot.queryParamMap.get('reason');

@@ -87,6 +87,7 @@ export class AuthService {
     if (this.session()) await this.supabase.rpc('log_auth_event', { p_action: 'LOGOUT' });
     await this.supabase.auth.signOut();
     this.session.set(null);
+    localStorage.removeItem('vestia_active_business_id');
   }
 
   async getCurrentUser(): Promise<SupabaseUser | null> {

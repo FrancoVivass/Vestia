@@ -22,7 +22,30 @@
   --transition-base: 180ms ease;
   --transition-slow: 280ms ease;
 }
-.dark-theme{--color-background:#171513;--color-surface:#211e1b;--color-border:#3c3530;--color-text:#f4eee9;--color-muted:#b4a69b;--color-primary:#c49a78;--color-primary-dark:#d8b293}.dark-theme input,.dark-theme select,.dark-theme textarea,.dark-theme .bg-white{background:#2a2521!important;color:var(--color-text)}
+.dark-theme{--color-background:#171513;--color-surface:#211e1b;--color-border:#3c3530;--color-text:#f4eee9;--color-muted:#b4a69b;--color-primary:#c49a78;--color-primary-dark:#d8b293}
+.dark-theme input,.dark-theme select,.dark-theme textarea{background:#2a2521!important;color:var(--color-text);border-color:var(--color-border)!important}
+.dark-theme .bg-white{background:#2a2521!important;color:var(--color-text)}
+.dark-theme .surface-card{background:var(--color-surface)!important;border-color:var(--color-border)!important;color:var(--color-text)!important}
+.dark-theme [class*="shadow"]{box-shadow:0 4px 20px rgba(0,0,0,0.3)!important}
+.dark-theme .floating-actions .floating-button{background:var(--color-surface)!important;border-color:var(--color-border)!important}
+.dark-theme footer{background:var(--color-surface)!important}
+.dark-theme aside{background:var(--color-surface)!important}
+.dark-theme header{background:var(--color-surface)!important}
+.dark-theme img[src*="vestia-logo"]{filter:brightness(0) invert(1)}
+.dark-theme .sidebar-link:hover{background:#2a2521!important}
+.dark-theme .bg-white\/80{background:rgba(42,37,33,0.8)!important}
+.dark-theme .hover-lift:hover{box-shadow:0 8px 30px rgba(0,0,0,0.4)!important}
+.dark-theme button:hover:not(:disabled){filter:brightness(1.1)!important;box-shadow:0 3px 10px rgba(0,0,0,0.3)!important}
+.dark-theme .product{background:var(--color-surface)!important;border-color:var(--color-border)!important}
+.dark-theme .product span{color:var(--color-muted)!important}
+.dark-theme .product b{color:var(--color-primary)!important}
+.dark-theme .product:disabled{opacity:.55!important}
+.dark-theme .bg-white{background:var(--color-surface)!important}
+.dark-theme .bg-white\/75{background:rgba(33,30,27,0.85)!important}
+.dark-theme .bg-white\/85{background:rgba(33,30,27,0.9)!important}
+.dark-theme .bg-white\/95{background:rgba(33,30,27,0.95)!important}
+.dark-theme .bg-white\/70{background:rgba(33,30,27,0.8)!important}
+.dark-theme .bg-white\/80{background:rgba(33,30,27,0.85)!important}
 
 html,
 body {
@@ -137,4 +160,15 @@ button:disabled {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/* ===== PRINT POS ===== */
+@media print {
+  body { background: white !important; }
+  app-header, app-sidebar, .floating-actions, footer { display: none !important; }
+  .min-h-screen { min-height: auto !important; }
+  .lg\:grid-cols-\[280px_1fr\] { display: block !important; }
+  aside { display: none !important; }
+  section.flex { padding: 0 !important; }
+  main { margin: 0 !important; }
 }

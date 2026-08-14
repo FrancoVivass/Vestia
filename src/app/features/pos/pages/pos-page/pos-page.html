@@ -1,3 +1,54 @@
 <section class="pos"><header><div><p>PUNTO DE VENTA</p><h1>Nueva venta</h1></div><div class="cash" [class.closed]="!cashSession()">{{cashSession()?'Caja abierta · '+cashSession().cash_registers.name:'Caja cerrada'}}</div></header>
-@if(completedSale();as receipt){<div class="success ticket" [style.--ticket-width]="ticketWidth()+'mm'">@if(storeLogo()){<img [src]="storeLogo()" [alt]="storeName()">}<h2>{{storeName()}}</h2>@if(storeAddress()){<p>{{storeAddress()}}</p>}@if(storePhone()){<p>Tel. {{storePhone()}}</p>}<h3>Venta realizada correctamente</h3><p>Comprobante N.º {{receipt.saleNumber}}</p><p>{{receipt.createdAt|date:'dd/MM/yyyy HH:mm'}} · {{receipt.customerName}}</p><p>Atendido por {{receipt.cashierName}}</p><div class="ticket-items">@for(item of receipt.items;track item.variantId+item.ownerId){<p><span>{{item.quantity}} × {{item.productName}} · {{item.variantName}}</span><b>$ {{item.quantity*item.unitPrice-item.discount|number:'1.2-2'}}</b></p>}</div><h3>Total $ {{receipt.total|number:'1.2-2'}}</h3><h3>Tipos de pago</h3>@for(payment of receipt.payments;track $index){<p>{{methodName(payment.paymentMethodId)}} · $ {{payment.amount|number:'1.2-2'}}</p>}<div class="ticket-actions"><button (click)="print()">Imprimir / guardar PDF</button><button (click)="newSale()">Nueva venta · F2</button></div></div>}
+@if(completedSale();as receipt){<div class="success ticket" [style.--ticket-width]="ticketWidth()+'mm'">
+  <div id="sale-lottie" class="sale-lottie"></div>
+  <div class="ticket-header">
+    @if(storeLogo()){<img [src]="storeLogo()" [alt]="storeName()" class="ticket-logo">}
+    <h2 class="ticket-store">{{storeName()}}</h2>
+    @if(storeAddress()){<p class="ticket-info">{{storeAddress()}}</p>}
+    @if(storePhone()){<p class="ticket-info">Tel. {{storePhone()}}</p>}
+  </div>
+  <div class="ticket-divider"></div>
+  <div class="ticket-title">
+    <span>COMPROBANTE DE VENTA</span>
+  </div>
+  <div class="ticket-meta">
+    <p><span>Nº</span><b>{{receipt.saleNumber}}</b></p>
+    <p><span>Fecha</span><b>{{receipt.createdAt|date:'dd/MM/yyyy HH:mm'}}</b></p>
+    <p><span>Cliente</span><b>{{receipt.customerName}}</b></p>
+    <p><span>Cajero</span><b>{{receipt.cashierName}}</b></p>
+  </div>
+  <div class="ticket-divider"></div>
+  <div class="ticket-items">
+    @for(item of receipt.items;track item.variantId+item.ownerId){
+      <div class="ticket-item">
+        <div class="ticket-item-info">
+          <span class="ticket-item-qty">{{item.quantity}}×</span>
+          <div class="ticket-item-detail">
+            <b>{{item.productName}}</b>
+            <small>{{item.variantName}}</small>
+          </div>
+        </div>
+        <b class="ticket-item-price">$ {{item.quantity*item.unitPrice-item.discount|number:'1.2-2'}}</b>
+      </div>
+    }
+  </div>
+  <div class="ticket-divider"></div>
+  <div class="ticket-total">
+    <span>TOTAL</span>
+    <b>$ {{receipt.total|number:'1.2-2'}}</b>
+  </div>
+  <div class="ticket-payments">
+    @for(payment of receipt.payments;track $index){
+      <p><span>{{methodName(payment.paymentMethodId)}}</span><b>$ {{payment.amount|number:'1.2-2'}}</b></p>
+    }
+  </div>
+  <div class="ticket-divider"></div>
+  <div class="ticket-footer">
+    <p>¡Gracias por su compra!</p>
+  </div>
+  <div class="ticket-actions">
+    <button (click)="print()">Imprimir / guardar PDF</button>
+    <button (click)="newSale()">Nueva venta · F2</button>
+  </div>
+</div>}
 @else{<div class="workspace"><div class="catalog"><div class="search-tools"><form class="search-form" (ngSubmit)="refresh()"><select name="searchMode" [(ngModel)]="searchMode" aria-label="Tipo de búsqueda"><option value="all">Todas las búsquedas</option><option value="name">Nombre</option><option value="sku">SKU de variante</option><option value="internal">Código interno</option><option value="barcode">Código de barras</option></select><input id="pos-search" name="search" [(ngModel)]="search" placeholder="Nombre, SKU, interno, barras, color o talle" autofocus><button>Buscar · F4</button></form><form class="scanner-form" (ngSubmit)="scanBarcode()"><div><strong>Escáner de código de barras</strong><small>Enfocá este campo y escaneá. Enter agrega el producto al carrito.</small></div><input id="pos-scanner" name="scannerCode" [(ngModel)]="scannerCode" inputmode="numeric" autocomplete="off" placeholder="Escanear código · F6"><button [disabled]="loading()">Agregar</button></form></div><div class="products">@for(row of stock();track row.variantId+row.ownerId){<button type="button" class="product" (click)="add(row)" [disabled]="row.quantity===0"><strong>{{row.productName}}</strong><span>{{row.color||'—'}} / {{row.size||'—'}} · {{row.sku}}</span><span>Interno {{row.internalCode||'—'}} · Barras {{row.barcode}}</span><span>{{row.ownerName}}</span><b>$ {{row.price|number:'1.2-2'}} · Stock {{row.quantity}}</b></button>}@empty{<p class="empty">No se encontraron productos con esa búsqueda.</p>}</div></div><aside><h2>Carrito</h2><div class="cart">@for(item of cart();track item.variantId+item.ownerId){<article><div><strong>{{item.productName}}</strong><small>{{item.variantName}} · {{item.sku}}</small></div><button class="remove" (click)="remove(item)">×</button><div class="controls"><button (click)="quantity(item,-1)">−</button><b>{{item.quantity}}</b><button (click)="quantity(item,1)">+</button>@if(canAdjustPrices()){<label>Precio <input type="number" min="0" [ngModel]="item.unitPrice" (ngModelChange)="price(item,$event)"></label>}@else{<span>$ {{item.unitPrice|number:'1.2-2'}}</span>}</div></article>}@empty{<p class="empty">Escaneá o seleccioná un producto.</p>}</div><div class="totals"><label>Cliente<select [(ngModel)]="customerId"><option value="">Consumidor final</option>@for(customer of customers();track customer.id){<option [value]="customer.id">{{customer.first_name}} {{customer.last_name}}</option>}</select></label>@if(canAdjustPrices()){<label>Descuento general <input type="number" min="0" [(ngModel)]="generalDiscount"></label>}<p><span>Subtotal</span><b>{{subtotal()|number:'1.2-2'}}</b></p><p class="grand"><span>Total</span><b>$ {{total()|number:'1.2-2'}}</b></p><h3>Formas de pago</h3><label>Tipo de pago<select [(ngModel)]="selectedMethod">@for(method of methods();track method.id){<option [value]="method.id">{{method.name}}</option>}</select></label><label>Importe<input type="number" min="0" [(ngModel)]="paymentAmount" [placeholder]="pending().toString()"></label><button (click)="addPayment()" [disabled]="pending()<=0">Agregar pago</button>@for(payment of payments();track $index){<p><span>{{methodName(payment.paymentMethodId)}}</span><b>$ {{payment.amount|number:'1.2-2'}} <button class="remove" (click)="removePayment($index)">×</button></b></p>}<p><span>Pendiente</span><b>$ {{pending()|number:'1.2-2'}}</b></p><button class="charge" (click)="charge()" [disabled]="loading()||!cart().length">{{loading()?'Procesando…':'COBRAR · F8'}}</button></div></aside></div>}</section>

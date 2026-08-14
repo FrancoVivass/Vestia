@@ -9,14 +9,15 @@
     </div>
   </div>
 
-  <nav class="space-y-2">
+  <nav class="space-y-1">
     @for (item of items(); track item.route) {
       <a
         [routerLink]="item.route"
         routerLinkActive="bg-[var(--color-primary)] text-white border-[var(--color-primary)]"
-        class="flex items-center rounded-2xl border border-[var(--color-border)] px-4 py-3 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-white"
+        class="sidebar-link flex items-center gap-3 rounded-2xl border border-transparent px-4 py-2.5 text-sm font-medium text-[var(--color-text)] transition hover:border-[var(--color-primary)] hover:bg-white"
         (click)="closeMobileSidebar()"
       >
+        <span class="sidebar-icon" [innerHTML]="getIcon(item.icon)"></span>
         {{ item.label }}
       </a>
     }

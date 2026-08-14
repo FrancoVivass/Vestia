@@ -11,6 +11,7 @@
         <h1 class="mt-5 text-5xl font-semibold tracking-[-0.03em] text-[var(--color-text)]">
           Acceso profesional para la gestión de tu comercio.
         </h1>
+        <div id="login-lottie" class="login-lottie"></div>
         <p class="mt-6 text-lg leading-8 text-[var(--color-muted)]">
           Ingresá a tu espacio de trabajo para administrar operaciones, visualizar información clave y continuar con el crecimiento de tu negocio.
         </p>
@@ -93,11 +94,6 @@
             </button>
           }
         </form>
-
-        @if (!resetMode()) {
-          <div class="my-5 flex items-center gap-3 text-xs uppercase tracking-[0.15em] text-[var(--color-muted)]"><span class="h-px flex-1 bg-[var(--color-border)]"></span>o<span class="h-px flex-1 bg-[var(--color-border)]"></span></div>
-          <button type="button" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 font-semibold text-[var(--color-text)] transition hover:border-[var(--color-primary)] disabled:opacity-70" [disabled]="loading()" (click)="onGithubLogin()">Continuar con GitHub</button>
-        }
 
         <div class="mt-6 flex flex-col gap-3 text-sm">
           <button

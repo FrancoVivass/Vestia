@@ -10,7 +10,7 @@ import { ModalComponent } from '../../../../shared/ui/modal/modal';
 export class ProductLabelModalComponent implements OnChanges,AfterViewChecked {
   private readonly host:ElementRef<HTMLElement>=inject(ElementRef);private readonly client=inject(SupabaseService).client;private readonly toast=inject(ToastService);
   @Input() open=false;@Input() product:Product|null=null;@Output() readonly closed=new EventEmitter<void>();
-  readonly selected=signal<string[]>([]);readonly settings=signal({width:50,height:30});quantity=1;printing=signal(false);
+  readonly selected=signal<string[]>([]);readonly settings=signal({width:50,height:30});quantity=1;printing=signal(false);showPrice=signal(true);
 
   async ngOnChanges(changes:SimpleChanges){if((changes['open']?.currentValue===true||changes['product'])&&this.product){this.selected.set(this.product.variants.filter(variant=>variant.status==='active').map(variant=>variant.id));this.quantity=1;const{data}=await this.client.from('app_settings').select('label_settings').maybeSingle();const value=data?.label_settings as{width?:number;height?:number}|null;if(value)this.settings.update(current=>({...current,...value}));this.redraw();}}
   variants(){return this.product?.variants.filter(variant=>this.selected().includes(variant.id))??[];}
