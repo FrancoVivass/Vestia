@@ -1,8 +1,63 @@
-<button
-  type="button"
-  class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-base text-[var(--color-text)] transition hover:border-[var(--color-primary)]"
-  aria-label="Notificaciones"
->
-  <span>🔔</span>
-  <span class="absolute right-2 top-2 h-2.5 w-2.5 rounded-full bg-[var(--color-warning)]"></span>
-</button>
+<div class="relative">
+  <button
+    type="button"
+    class="relative inline-flex h-11 w-11 items-center justify-center rounded-full border border-[var(--color-border)] bg-white text-base text-[var(--color-text)] transition hover:border-[var(--color-primary)]"
+    [class.border-[var(--color-primary)]]="notifications.hasUnread()"
+    (click)="toggle()"
+    aria-label="Notificaciones"
+  >
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/>
+      <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>
+    </svg>
+    @if (notifications.hasUnread()) {
+      <span class="absolute -right-0.5 -top-0.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--color-warning)] px-1 text-[10px] font-bold text-white">
+        {{ notifications.unreadCount() > 9 ? '9+' : notifications.unreadCount() }}
+      </span>
+    }
+  </button>
+
+  @if (open) {
+    <div class="absolute right-0 top-full z-50 mt-2 w-80 overflow-hidden rounded-2xl border border-[var(--color-border)] bg-white shadow-xl">
+      <div class="flex items-center justify-between border-b border-[var(--color-border)] px-4 py-3">
+        <h3 class="text-sm font-semibold text-[var(--color-text)]">Notificaciones</h3>
+        @if (notifications.hasUnread()) {
+          <button
+            type="button"
+            class="text-xs font-medium text-[var(--color-primary)] transition hover:text-[var(--color-primary-dark)]"
+            (click)="markAllRead()"
+          >
+            Marcar todo leído
+          </button>
+        }
+      </div>
+
+      <div class="max-h-80 overflow-y-auto">
+        @if (notifications.items().length === 0) {
+          <div class="px-4 py-8 text-center text-sm text-[var(--color-muted)]">
+            No tenés notificaciones nuevas.
+          </div>
+        }
+        @for (n of notifications.items(); track trackById($index, n)) {
+          <button
+            type="button"
+            class="flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-[var(--color-background)]"
+            [class.bg-[rgba(196,154,120,0.06)]]="!n.read"
+            [class.font-semibold]="!n.read"
+            (click)="markRead(n.id, $event)"
+          >
+            <span class="mt-0.5 text-base">{{ iconFor(n.type) }}</span>
+            <div class="min-w-0 flex-1">
+              <p class="text-sm text-[var(--color-text)]">{{ n.title }}</p>
+              <p class="mt-0.5 text-xs text-[var(--color-muted)] line-clamp-2">{{ n.message }}</p>
+              <p class="mt-1 text-[10px] text-[var(--color-muted)]">{{ n.created_at | date:'dd/MM HH:mm' }}</p>
+            </div>
+            @if (!n.read) {
+              <span class="mt-1 h-2 w-2 shrink-0 rounded-full bg-[var(--color-primary)]"></span>
+            }
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
