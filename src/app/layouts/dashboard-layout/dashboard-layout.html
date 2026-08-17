@@ -30,6 +30,41 @@
     </section>
   </div>
 
+  @if (showCashPrompt()) {
+    <div class="fixed inset-0 z-[100] flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div class="cash-prompt-card mx-4 w-full max-w-md rounded-3xl border border-[var(--color-border)] bg-white p-8 text-center shadow-2xl">
+        <div class="mx-auto mb-5 flex h-16 w-16 items-center justify-center rounded-full bg-[rgba(196,154,120,0.12)]">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="6" width="20" height="12" rx="2"/>
+            <path d="M12 12h.01"/>
+            <path d="M17 12h.01"/>
+            <path d="M7 12h.01"/>
+          </svg>
+        </div>
+        <h2 class="text-xl font-semibold text-[var(--color-text)]">Abrir caja</h2>
+        <p class="mt-3 text-sm leading-6 text-[var(--color-muted)]">
+          Para registrar ventas necesitás tener una caja abierta. ¿Querés abrirla ahora?
+        </p>
+        <div class="mt-7 flex flex-col gap-3">
+          <button
+            type="button"
+            class="w-full rounded-xl bg-[var(--color-primary)] px-4 py-3.5 text-sm font-semibold uppercase tracking-[0.08em] text-white transition hover:bg-[var(--color-primary-dark)] hover:shadow-lg"
+            (click)="openCaja()"
+          >
+            Abrir caja
+          </button>
+          <button
+            type="button"
+            class="w-full rounded-xl border border-[var(--color-border)] bg-white px-4 py-3 text-sm font-medium text-[var(--color-muted)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-text)]"
+            (click)="dismissCashPrompt()"
+          >
+            Abrir después
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
   <div class="floating-actions" aria-label="Acciones rápidas">
     <button type="button" class="floating-button theme-button" (click)="theme.toggle()" [attr.aria-label]="theme.dark()?'Activar modo claro':'Activar modo oscuro'" [title]="theme.dark()?'Modo claro':'Modo oscuro'">
       @if(theme.dark()){<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg>}@else{<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>}

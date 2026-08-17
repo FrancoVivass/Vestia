@@ -30,7 +30,7 @@ CREATE POLICY "notifications_select_own"
   TO authenticated
   USING (
     user_id = auth.uid()
-    AND business_id = public.active_business_id()
+    AND business_id = public.current_business_id()
   );
 
 -- Solo el sistema inserta notificaciones (via SECURITY DEFINER functions)
