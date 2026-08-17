@@ -92,10 +92,9 @@ SET search_path = public
 AS $$
 BEGIN
   INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-  SELECT p_business_id, au.id, p_title, p_message, p_type, p_entity_type, p_entity_id
+  SELECT p_business_id, pr.auth_user_id, p_title, p_message, p_type, p_entity_type, p_entity_id
   FROM public.profiles pr
-  JOIN auth.users au ON au.id = pr.user_id
-  WHERE pr.business_id = p_business_id;
+  WHERE pr.business_id = p_business_id AND pr.active = true;
 END;
 $$;
 
@@ -183,7 +182,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_profile UUID;
   v_diff NUMERIC;
   v_msg TEXT;
 BEGIN
@@ -198,17 +196,10 @@ BEGIN
       v_msg := 'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' cerrada. Faltante: $' || ABS(v_diff);
     END IF;
 
-    SELECT pr.id INTO v_profile
+    INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
+    SELECT NEW.business_id, pr.auth_user_id, 'Caja cerrada', v_msg, 'cash', 'cash_session', NEW.id
     FROM public.profiles pr
-    WHERE pr.user_id = NEW.closed_by
-    LIMIT 1;
-
-    IF v_profile IS NOT NULL THEN
-      INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-      SELECT NEW.business_id, pr.id, 'Caja cerrada', v_msg, 'cash', 'cash_session', NEW.id
-      FROM public.profiles pr
-      WHERE pr.business_id = NEW.business_id;
-    END IF;
+    WHERE pr.business_id = NEW.business_id AND pr.active = true;
   END IF;
 
   RETURN NEW;
@@ -237,9 +228,9 @@ BEGIN
     v_msg := 'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' abierta con $' || NEW.opening_amount;
 
     INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-    SELECT NEW.business_id, pr.id, 'Caja abierta', v_msg, 'cash', 'cash_session', NEW.id
+    SELECT NEW.business_id, pr.auth_user_id, 'Caja abierta', v_msg, 'cash', 'cash_session', NEW.id
     FROM public.profiles pr
-    WHERE pr.business_id = NEW.business_id;
+    WHERE pr.business_id = NEW.business_id AND pr.active = true;
   END IF;
 
   RETURN NEW;
@@ -269,14 +260,14 @@ BEGIN
   v_customer := COALESCE((SELECT first_name || ' ' || last_name FROM customers WHERE id = NEW.customer_id), 'Consumidor final');
 
   INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-  SELECT NEW.business_id, pr.id,
+  SELECT NEW.business_id, pr.auth_user_id,
     'Nueva venta',
     'Venta por $' || v_total || ' a ' || v_customer,
     'sale',
     'sale',
     NEW.id
   FROM public.profiles pr
-  WHERE pr.business_id = NEW.business_id;
+  WHERE pr.business_id = NEW.business_id AND pr.active = true;
 
   RETURN NEW;
 END;

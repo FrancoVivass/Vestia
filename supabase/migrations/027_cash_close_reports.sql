@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS public.cash_close_reports (
   id              UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   business_id     UUID NOT NULL REFERENCES public.businesses(id) ON DELETE CASCADE,
   cash_session_id UUID NOT NULL REFERENCES public.cash_sessions(id) ON DELETE CASCADE,
-  closed_by       UUID REFERENCES auth.users(id),
+  closed_by       UUID,
   closed_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
 
   -- Datos de apertura
@@ -62,7 +62,6 @@ AS $$
 DECLARE
   v_summary JSONB;
   v_register_name TEXT;
-  v_closed_by UUID;
 BEGIN
   -- Solo al cerrar caja
   IF NEW.status = 'CLOSED' AND OLD.status = 'OPEN' THEN
@@ -71,12 +70,6 @@ BEGIN
     SELECT name INTO v_register_name
     FROM public.cash_registers
     WHERE id = NEW.cash_register_id;
-
-    -- Quién cerró (el profile del user)
-    SELECT pr.id INTO v_closed_by
-    FROM public.profiles pr
-    WHERE pr.user_id = NEW.closed_by
-    LIMIT 1;
 
     -- Calcular el resumen desde cash_movements
     SELECT jsonb_build_object(
@@ -114,7 +107,7 @@ BEGIN
       total_sales, total_income, total_expenses, total_withdrawals, total_refunds,
       payments_breakdown, notes
     ) VALUES (
-      NEW.business_id, NEW.id, v_closed_by, NEW.closed_at,
+      NEW.business_id, NEW.id, NEW.closed_by, NEW.closed_at,
       COALESCE(v_register_name, 'Sin nombre'), NEW.opening_amount,
       COALESCE((v_summary ->> 'expectedCash')::numeric, 0),
       COALESCE(NEW.counted_amount, 0),
