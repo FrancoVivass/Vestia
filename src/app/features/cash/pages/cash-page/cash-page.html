@@ -1,1 +1,146 @@
-<section><header><p>CAJA</p><h1>Apertura, arqueo y cierre</h1><span>Los importes muestran el tipo de pago declarado; no se genera ningún cobro externo.</span></header>@if(session()){<article><span class="pill">ABIERTA</span><h2>{{session().cash_registers.name}}</h2><p>Abierta con {{session().opening_amount|currency:'ARS':'symbol-narrow'}}</p>@if(summary()){<div class="stats"><div><span>Efectivo esperado</span><b>{{summary()!.expectedCash|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Ventas</span><b>{{summary()!.sales|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Ingresos</span><b>{{summary()!.income|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Gastos</span><b>{{summary()!.expenses|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Retiros</span><b>{{summary()!.withdrawals|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Reintegros</span><b>{{summary()!.refunds|currency:'ARS':'symbol-narrow'}}</b></div></div><h3>Ventas por tipo de pago</h3><div class="payments">@for(payment of summary()!.payments;track payment.name){<p><span>{{payment.name}}</span><b>{{payment.amount|currency:'ARS':'symbol-narrow'}}</b></p>}@empty{<p>Aún no hay ventas en esta caja.</p>}</div>}<div class="form"><label>Efectivo contado<input type="number" min="0" [(ngModel)]="counted"></label><label>Observaciones<textarea [(ngModel)]="notes"></textarea></label><button (click)="close()">Cerrar caja</button></div></article>}@else{<article><span class="pill closed">CERRADA</span><h2>Abrir una caja</h2><div class="form"><label>Caja<select [(ngModel)]="registerId">@for(r of registers();track r.id){<option [value]="r.id">{{r.name}}</option>}</select></label><label>Monto inicial<input type="number" min="0" [(ngModel)]="opening"></label><button (click)="open()" [disabled]="!registerId">Abrir caja</button></div></article>}</section>
+<section class="cash-page">
+  <header>
+    <div>
+      <p>CAJA</p>
+      <h1>Apertura, arqueo y cierre</h1>
+      <span>Los importes muestran el tipo de pago declarado; no se genera ningún cobro externo.</span>
+    </div>
+    @if (reports().length > 0) {
+      <button type="button" class="history-btn" (click)="toggleHistory()">
+        {{ showHistory() ? 'Volver' : 'Historial de cierres' }}
+      </button>
+    }
+  </header>
+
+  @if (showHistory()) {
+    <article class="reports-section">
+      <h2>Historial de cierres de caja</h2>
+      <p class="section-desc">Resumen de cada jornada cerrada con estadísticas completas.</p>
+
+      <div class="reports-grid">
+        @for (report of reports(); track report.id) {
+          <div class="report-card">
+            <div class="report-header">
+              <div>
+                <h3>{{ report.register_name }}</h3>
+                <p class="report-date">{{ report.closed_at | date:'dd/MM/yyyy HH:mm' }}</p>
+              </div>
+              <span class="pill" [class.negative]="report.difference < 0" [class.zero]="report.difference === 0">
+                {{ report.difference >= 0 ? '+' : '' }}{{ report.difference | currency:'ARS':'symbol-narrow' }}
+              </span>
+            </div>
+
+            <div class="report-stats">
+              <div class="stat">
+                <span>Apertura</span>
+                <b>{{ report.opening_amount | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Efectivo esperado</span>
+                <b>{{ report.expected_amount | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Contado</span>
+                <b>{{ report.counted_amount | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+            </div>
+
+            <div class="report-divider"></div>
+
+            <div class="report-stats">
+              <div class="stat">
+                <span>Ventas</span>
+                <b class="positive">{{ report.total_sales | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Ingresos</span>
+                <b>{{ report.total_income | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Gastos</span>
+                <b class="negative">{{ report.total_expenses | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Retiros</span>
+                <b class="negative">{{ report.total_withdrawals | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+              <div class="stat">
+                <span>Reintegros</span>
+                <b class="negative">{{ report.total_refunds | currency:'ARS':'symbol-narrow' }}</b>
+              </div>
+            </div>
+
+            @if (report.payments_breakdown && report.payments_breakdown.length > 0) {
+              <div class="report-divider"></div>
+              <div class="report-payments">
+                <p class="payments-title">Ventas por tipo de pago</p>
+                @for (p of report.payments_breakdown; track p.name) {
+                  <div class="payment-row">
+                    <span>{{ p.name }}</span>
+                    <b>{{ p.amount | currency:'ARS':'symbol-narrow' }}</b>
+                  </div>
+                }
+              </div>
+            }
+
+            @if (report.notes) {
+              <div class="report-notes">
+                <span>Nota:</span> {{ report.notes }}
+              </div>
+            }
+          </div>
+        } @empty {
+          <p class="empty">Aún no hay cierres de caja registrados.</p>
+        }
+      </div>
+    </article>
+  } @else {
+    @if (session()) {
+      <article class="active-session">
+        <span class="pill">ABIERTA</span>
+        <h2>{{ session().cash_registers.name }}</h2>
+        <p>Abierta con {{ session().opening_amount | currency:'ARS':'symbol-narrow' }}</p>
+
+        @if (summary()) {
+          <div class="stats">
+            <div><span>Efectivo esperado</span><b>{{ summary()!.expectedCash | currency:'ARS':'symbol-narrow' }}</b></div>
+            <div><span>Ventas</span><b>{{ summary()!.sales | currency:'ARS':'symbol-narrow' }}</b></div>
+            <div><span>Ingresos</span><b>{{ summary()!.income | currency:'ARS':'symbol-narrow' }}</b></div>
+            <div><span>Gastos</span><b>{{ summary()!.expenses | currency:'ARS':'symbol-narrow' }}</b></div>
+            <div><span>Retiros</span><b>{{ summary()!.withdrawals | currency:'ARS':'symbol-narrow' }}</b></div>
+            <div><span>Reintegros</span><b>{{ summary()!.refunds | currency:'ARS':'symbol-narrow' }}</b></div>
+          </div>
+
+          <h3>Ventas por tipo de pago</h3>
+          <div class="payments">
+            @for (payment of summary()!.payments; track payment.name) {
+              <p><span>{{ payment.name }}</span><b>{{ payment.amount | currency:'ARS':'symbol-narrow' }}</b></p>
+            } @empty {
+              <p>Aún no hay ventas en esta caja.</p>
+            }
+          </div>
+        }
+
+        <div class="form">
+          <label>Efectivo contado<input type="number" min="0" [(ngModel)]="counted"></label>
+          <label>Observaciones<textarea [(ngModel)]="notes"></textarea></label>
+          <button (click)="close()">Cerrar caja</button>
+        </div>
+      </article>
+    } @else {
+      <article class="closed-session">
+        <span class="pill closed">CERRADA</span>
+        <h2>Abrir una caja</h2>
+        <div class="form">
+          <label>Caja<select [(ngModel)]="registerId">
+            @for (r of registers(); track r.id) {
+              <option [value]="r.id">{{ r.name }}</option>
+            }
+          </select></label>
+          <label>Monto inicial<input type="number" min="0" [(ngModel)]="opening"></label>
+          <button (click)="open()" [disabled]="!registerId">Abrir caja</button>
+        </div>
+      </article>
+    }
+  }
+</section>
