@@ -9,8 +9,8 @@
         <div class="receipt-header">
           @if (storeLogo()) { <img [src]="storeLogo()" [alt]="storeName()" class="receipt-logo"> }
           <h2 class="receipt-store">{{ storeName() }}</h2>
-          @if (storeAddress()) { <p>{{ storeAddress() }}</p> }
-          @if (storePhone()) { <p>Tel. {{ storePhone() }}</p> }
+          @if (storeAddress()) { <p class="receipt-address">{{ storeAddress() }}</p> }
+          @if (storePhone()) { <p class="receipt-address">Tel. {{ storePhone() }}</p> }
         </div>
         <div class="receipt-divider"></div>
         <p class="receipt-title">COMPROBANTE DE VENTA</p>

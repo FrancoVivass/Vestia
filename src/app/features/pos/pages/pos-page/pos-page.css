@@ -664,7 +664,7 @@
 
 /* ═══════════ Print ═══════════ */
 @media print {
-  .pos-main, .modal-overlay, .receipt-actions { display: none !important; }
+  .pos-main, .modal-overlay, .receipt-actions, .receipt-address { display: none !important; }
   .receipt-view { padding: 0; }
   .receipt-card {
     width: var(--ticket-width, 80mm);
