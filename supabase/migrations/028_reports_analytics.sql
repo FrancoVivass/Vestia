@@ -42,8 +42,9 @@ AS $$
       JOIN public.sale_item_allocations sia ON sia.id = ri.sale_item_allocation_id
       JOIN public.sale_items si ON si.id = sia.sale_item_id
       JOIN public.sales s ON s.id = si.sale_id
+      JOIN public.returns r ON r.id = ri.return_id
       WHERE s.business_id = public.current_business_id()
-        AND ri.created_at::date BETWEEN p_from AND p_to
+        AND r.created_at::date BETWEEN p_from AND p_to
     ),
     'total_expenses', (
       SELECT COALESCE(SUM(ABS(e.amount)), 0)
