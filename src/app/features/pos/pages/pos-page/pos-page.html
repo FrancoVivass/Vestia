@@ -151,10 +151,10 @@
                 </select>
                 <div class="discount-input-group">
                   <div class="discount-type-toggle">
-                    <button [class.active]="discountType === 'amount'" (click)="discountType = 'amount'">$</button>
-                    <button [class.active]="discountType === 'percentage'" (click)="discountType = 'percentage'">%</button>
+                    <button [class.active]="discountType === 'amount'" (click)="discountType = 'amount'; onDiscountChange(generalDiscount)">$</button>
+                    <button [class.active]="discountType === 'percentage'" (click)="discountType = 'percentage'; onDiscountChange(generalDiscount)">%</button>
                   </div>
-                  <input type="number" min="0" [max]="discountType === 'percentage' ? 100 : subtotal()" [(ngModel)]="generalDiscount" placeholder="0">
+                  <input type="number" min="0" [max]="discountType === 'percentage' ? 100 : subtotal()" [ngModel]="generalDiscount" (ngModelChange)="onDiscountChange($event)" placeholder="0">
                 </div>
               </div>
             </div>

@@ -71,6 +71,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
   selectedMethod = '';
   paymentAmount = 0;
 
+  private recalcTrigger = signal(0);
+
   readonly discountReasons = [
     { value: 'Efectivo', label: 'Pago en efectivo' },
     { value: 'Promoción', label: 'Promoción / oferta' },
@@ -84,6 +86,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     this.cart().reduce((sum, item) => sum + item.quantity * item.unitPrice - item.discount, 0)
   );
   readonly total = computed(() => {
+    this.recalcTrigger();
     const sub = this.subtotal();
     const disc = Number(this.generalDiscount || 0);
     if (this.discountType === 'percentage') {
@@ -92,6 +95,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     return Math.max(0, sub - disc);
   });
   readonly discountAmount = computed(() => {
+    this.recalcTrigger();
     const sub = this.subtotal();
     const disc = Number(this.generalDiscount || 0);
     if (this.discountType === 'percentage') {
@@ -99,6 +103,11 @@ export class PosPageComponent implements OnInit, OnDestroy {
     }
     return disc;
   });
+
+  onDiscountChange(value: unknown): void {
+    this.generalDiscount = Number(value) || 0;
+    this.recalcTrigger.update(v => v + 1);
+  }
   readonly paid = computed(() => this.payments().reduce((sum, p) => sum + p.amount, 0));
   readonly pending = computed(() => Number((this.total() - this.paid()).toFixed(2)));
   readonly cartCount = computed(() => this.cart().reduce((sum, item) => sum + item.quantity, 0));
@@ -296,7 +305,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
       const id = await this.sales.complete({
         cashSessionId: this.cashSession().id,
         customerId: this.customerId || null,
-        discount: Number(this.generalDiscount) || 0,
+        discount: this.discountAmount(),
         items: this.cart(),
         payments: this.payments(),
       });
