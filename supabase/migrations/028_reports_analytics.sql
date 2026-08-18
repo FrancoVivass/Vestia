@@ -39,7 +39,8 @@ AS $$
     'total_returns', (
       SELECT COALESCE(SUM(ri.quantity * (si.subtotal / NULLIF(si.quantity, 0))), 0)
       FROM public.return_items ri
-      JOIN public.sale_items si ON si.id = ri.sale_item_id
+      JOIN public.sale_item_allocations sia ON sia.id = ri.sale_item_allocation_id
+      JOIN public.sale_items si ON si.id = sia.sale_item_id
       JOIN public.sales s ON s.id = si.sale_id
       WHERE s.business_id = public.current_business_id()
         AND ri.created_at::date BETWEEN p_from AND p_to
