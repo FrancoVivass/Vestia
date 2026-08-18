@@ -1,4 +1,5 @@
 import { Component, computed, inject } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { NavigationService } from '../../../core/services/navigation.service';
@@ -41,6 +42,7 @@ export class SidebarComponent {
   protected readonly navigation = inject(NavigationService);
   private readonly auth = inject(AuthService);
   private readonly permissions = inject(PermissionService);
+  private readonly sanitizer = inject(DomSanitizer);
 
   readonly items = computed<SidebarItem[]>(() => {
     const owner = String(this.auth.user()?.user_metadata['role'] ?? '').toUpperCase() === 'OWNER';
@@ -70,8 +72,8 @@ export class SidebarComponent {
     ].filter((i) => i.visible);
   });
 
-  getIcon(name: string): string {
-    return ICONS[name] ?? '';
+  getIcon(name: string): SafeHtml {
+    return this.sanitizer.bypassSecurityTrustHtml(ICONS[name] ?? '');
   }
 
   closeMobileSidebar(): void {
