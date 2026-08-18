@@ -1,54 +1,314 @@
-<section class="pos"><header><div><p>PUNTO DE VENTA</p><h1>Nueva venta</h1></div><div class="cash" [class.closed]="!cashSession()">{{cashSession()?'Caja abierta · '+cashSession().cash_registers.name:'Caja cerrada'}}</div></header>
-@if(completedSale();as receipt){<div class="success ticket" [style.--ticket-width]="ticketWidth()+'mm'">
-  <div id="sale-lottie" class="sale-lottie"></div>
-  <div class="ticket-header">
-    @if(storeLogo()){<img [src]="storeLogo()" [alt]="storeName()" class="ticket-logo">}
-    <h2 class="ticket-store">{{storeName()}}</h2>
-    @if(storeAddress()){<p class="ticket-info">{{storeAddress()}}</p>}
-    @if(storePhone()){<p class="ticket-info">Tel. {{storePhone()}}</p>}
-  </div>
-  <div class="ticket-divider"></div>
-  <div class="ticket-title">
-    <span>COMPROBANTE DE VENTA</span>
-  </div>
-  <div class="ticket-meta">
-    <p><span>Nº</span><b>{{receipt.saleNumber}}</b></p>
-    <p><span>Fecha</span><b>{{receipt.createdAt|date:'dd/MM/yyyy HH:mm'}}</b></p>
-    <p><span>Cliente</span><b>{{receipt.customerName}}</b></p>
-    <p><span>Cajero</span><b>{{receipt.cashierName}}</b></p>
-  </div>
-  <div class="ticket-divider"></div>
-  <div class="ticket-items">
-    @for(item of receipt.items;track item.variantId+item.ownerId){
-      <div class="ticket-item">
-        <div class="ticket-item-info">
-          <span class="ticket-item-qty">{{item.quantity}}×</span>
-          <div class="ticket-item-detail">
-            <b>{{item.productName}}</b>
-            <small>{{item.variantName}}</small>
+<section class="pos">
+
+  <!-- ─── Header ─── -->
+  <header class="pos-header">
+    <div class="header-left">
+      <h1>Punto de Venta</h1>
+      <div class="cash-pill" [class.cash-open]="cashSession()" [class.cash-closed]="!cashSession()">
+        <span class="cash-dot"></span>
+        {{ cashSession() ? cashSession().cash_registers.name : 'Sin caja abierta' }}
+      </div>
+    </div>
+    <div class="header-right">
+      @if (cartCount() > 0) {
+        <span class="cart-badge">{{ cartCount() }} en carrito</span>
+      }
+      <button class="btn-pos btn-new" (click)="newSale()" [disabled]="!completedSale() && !cart().length">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+        Nueva venta · F2
+      </button>
+    </div>
+  </header>
+
+  <!-- ─── Receipt View ─── -->
+  @if (completedSale(); as receipt) {
+    <div class="receipt-view">
+      <div class="receipt-card" [style.--ticket-width]="ticketWidth()+'mm'">
+        <div id="sale-lottie" class="sale-lottie"></div>
+
+        <div class="receipt-header">
+          @if (storeLogo()) {
+            <img [src]="storeLogo()" [alt]="storeName()" class="receipt-logo">
+          }
+          <h2 class="receipt-store">{{ storeName() }}</h2>
+          @if (storeAddress()) { <p>{{ storeAddress() }}</p> }
+          @if (storePhone()) { <p>Tel. {{ storePhone() }}</p> }
+        </div>
+
+        <div class="receipt-divider"></div>
+        <p class="receipt-title">COMPROBANTE DE VENTA</p>
+
+        <div class="receipt-meta">
+          <div><span>Nº</span><b>{{ receipt.saleNumber }}</b></div>
+          <div><span>Fecha</span><b>{{ receipt.createdAt | date:'dd/MM/yyyy HH:mm' }}</b></div>
+          <div><span>Cliente</span><b>{{ receipt.customerName }}</b></div>
+          <div><span>Cajero</span><b>{{ receipt.cashierName }}</b></div>
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-items">
+          @for (item of receipt.items; track item.variantId + item.ownerId) {
+            <div class="receipt-item">
+              <div class="receipt-item-left">
+                <span class="receipt-qty">{{ item.quantity }}×</span>
+                <div>
+                  <p class="receipt-item-name">{{ item.productName }}</p>
+                  <p class="receipt-item-variant">{{ item.variantName }}</p>
+                </div>
+              </div>
+              <b class="receipt-item-price">{{ item.quantity * item.unitPrice - item.discount | number:'1.2-2' }}</b>
+            </div>
+          }
+        </div>
+
+        <div class="receipt-divider"></div>
+
+        <div class="receipt-total">
+          <span>TOTAL</span>
+          <b>$ {{ receipt.total | number:'1.2-2' }}</b>
+        </div>
+
+        <div class="receipt-payments">
+          @for (payment of receipt.payments; track $index) {
+            <div><span>{{ methodName(payment.paymentMethodId) }}</span><b>{{ payment.amount | number:'1.2-2' }}</b></div>
+          }
+        </div>
+
+        <div class="receipt-divider"></div>
+        <p class="receipt-footer">¡Gracias por su compra!</p>
+
+        <div class="receipt-actions">
+          <button class="btn-pos btn-primary" (click)="print()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+            Imprimir
+          </button>
+          <button class="btn-pos btn-accent" (click)="newSale()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Nueva venta
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ─── POS Workspace ─── -->
+  @else {
+    <div class="workspace">
+
+      <!-- Left: Catalog -->
+      <div class="catalog">
+
+        <!-- Search bar -->
+        <div class="search-bar">
+          <div class="search-main" [class.focused]="searchFocused()">
+            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            <input
+              id="pos-search"
+              name="search"
+              [(ngModel)]="search"
+              placeholder="Buscar producto por nombre, SKU, código..."
+              autofocus
+              (focus)="searchFocused.set(true)"
+              (blur)="searchFocused.set(false)"
+              (keydown.enter)="refresh()"
+            >
+            <select name="searchMode" [(ngModel)]="searchMode" aria-label="Filtro">
+              <option value="all">Todo</option>
+              <option value="name">Nombre</option>
+              <option value="sku">SKU</option>
+              <option value="internal">Interno</option>
+              <option value="barcode">Barras</option>
+            </select>
+            <button class="btn-search" (click)="refresh()">Buscar</button>
+          </div>
+          <div class="scanner-bar" [class.focused]="scannerFocused()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 7 3 4 7 4"></polyline><polyline points="21 17 21 20 17 20"></polyline><line x1="3" y1="11" x2="21" y2="11"></line></svg>
+            <input
+              id="pos-scanner"
+              name="scannerCode"
+              [(ngModel)]="scannerCode"
+              inputmode="numeric"
+              autocomplete="off"
+              placeholder="Escanear código de barras · F6"
+              (focus)="scannerFocused.set(true)"
+              (blur)="scannerFocused.set(false)"
+            >
           </div>
         </div>
-        <b class="ticket-item-price">$ {{item.quantity*item.unitPrice-item.discount|number:'1.2-2'}}</b>
+
+        <!-- Product grid -->
+        <div class="products">
+          @for (row of stock(); track row.variantId + row.ownerId) {
+            <button
+              type="button"
+              class="product-card"
+              (click)="add(row)"
+              [disabled]="row.quantity === 0"
+              [class.out-of-stock]="row.quantity === 0"
+            >
+              <div class="product-top">
+                <span class="product-owner">{{ row.ownerName }}</span>
+                <span class="product-stock" [class.stock-low]="row.quantity <= 5">{{ row.quantity }} u.</span>
+              </div>
+              <h3 class="product-name">{{ row.productName }}</h3>
+              <p class="product-variant">{{ row.color || '—' }} / {{ row.size || '—' }}</p>
+              <p class="product-sku">{{ row.sku }}</p>
+              <div class="product-bottom">
+                <b class="product-price">{{ row.price | number:'1.2-2' }}</b>
+                @if (row.quantity === 0) {
+                  <span class="product-badge badge-empty">Sin stock</span>
+                } @else if (row.quantity <= 5) {
+                  <span class="product-badge badge-low">Últimas u.</span>
+                }
+              </div>
+            </button>
+          } @empty {
+            <div class="products-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+              <p>No se encontraron productos</p>
+              <span>Probá con otra búsqueda o escaneá un código</span>
+            </div>
+          }
+        </div>
       </div>
-    }
-  </div>
-  <div class="ticket-divider"></div>
-  <div class="ticket-total">
-    <span>TOTAL</span>
-    <b>$ {{receipt.total|number:'1.2-2'}}</b>
-  </div>
-  <div class="ticket-payments">
-    @for(payment of receipt.payments;track $index){
-      <p><span>{{methodName(payment.paymentMethodId)}}</span><b>$ {{payment.amount|number:'1.2-2'}}</b></p>
-    }
-  </div>
-  <div class="ticket-divider"></div>
-  <div class="ticket-footer">
-    <p>¡Gracias por su compra!</p>
-  </div>
-  <div class="ticket-actions">
-    <button (click)="print()">Imprimir / guardar PDF</button>
-    <button (click)="newSale()">Nueva venta · F2</button>
-  </div>
-</div>}
-@else{<div class="workspace"><div class="catalog"><div class="search-tools"><form class="search-form" (ngSubmit)="refresh()"><select name="searchMode" [(ngModel)]="searchMode" aria-label="Tipo de búsqueda"><option value="all">Todas las búsquedas</option><option value="name">Nombre</option><option value="sku">SKU de variante</option><option value="internal">Código interno</option><option value="barcode">Código de barras</option></select><input id="pos-search" name="search" [(ngModel)]="search" placeholder="Nombre, SKU, interno, barras, color o talle" autofocus><button>Buscar · F4</button></form><form class="scanner-form" (ngSubmit)="scanBarcode()"><div><strong>Escáner de código de barras</strong><small>Enfocá este campo y escaneá. Enter agrega el producto al carrito.</small></div><input id="pos-scanner" name="scannerCode" [(ngModel)]="scannerCode" inputmode="numeric" autocomplete="off" placeholder="Escanear código · F6"><button [disabled]="loading()">Agregar</button></form></div><div class="products">@for(row of stock();track row.variantId+row.ownerId){<button type="button" class="product" (click)="add(row)" [disabled]="row.quantity===0"><strong>{{row.productName}}</strong><span>{{row.color||'—'}} / {{row.size||'—'}} · {{row.sku}}</span><span>Interno {{row.internalCode||'—'}} · Barras {{row.barcode}}</span><span>{{row.ownerName}}</span><b>$ {{row.price|number:'1.2-2'}} · Stock {{row.quantity}}</b></button>}@empty{<p class="empty">No se encontraron productos con esa búsqueda.</p>}</div></div><aside><h2>Carrito</h2><div class="cart">@for(item of cart();track item.variantId+item.ownerId){<article><div><strong>{{item.productName}}</strong><small>{{item.variantName}} · {{item.sku}}</small></div><button class="remove" (click)="remove(item)">×</button><div class="controls"><button (click)="quantity(item,-1)">−</button><b>{{item.quantity}}</b><button (click)="quantity(item,1)">+</button>@if(canAdjustPrices()){<label>Precio <input type="number" min="0" [ngModel]="item.unitPrice" (ngModelChange)="price(item,$event)"></label>}@else{<span>$ {{item.unitPrice|number:'1.2-2'}}</span>}</div></article>}@empty{<p class="empty">Escaneá o seleccioná un producto.</p>}</div><div class="totals"><label>Cliente<select [(ngModel)]="customerId"><option value="">Consumidor final</option>@for(customer of customers();track customer.id){<option [value]="customer.id">{{customer.first_name}} {{customer.last_name}}</option>}</select></label>@if(canAdjustPrices()){<label>Descuento general <input type="number" min="0" [(ngModel)]="generalDiscount"></label>}<p><span>Subtotal</span><b>{{subtotal()|number:'1.2-2'}}</b></p><p class="grand"><span>Total</span><b>$ {{total()|number:'1.2-2'}}</b></p><h3>Formas de pago</h3><label>Tipo de pago<select [(ngModel)]="selectedMethod">@for(method of methods();track method.id){<option [value]="method.id">{{method.name}}</option>}</select></label><label>Importe<input type="number" min="0" [(ngModel)]="paymentAmount" [placeholder]="pending().toString()"></label><button (click)="addPayment()" [disabled]="pending()<=0">Agregar pago</button>@for(payment of payments();track $index){<p><span>{{methodName(payment.paymentMethodId)}}</span><b>$ {{payment.amount|number:'1.2-2'}} <button class="remove" (click)="removePayment($index)">×</button></b></p>}<p><span>Pendiente</span><b>$ {{pending()|number:'1.2-2'}}</b></p><button class="charge" (click)="charge()" [disabled]="loading()||!cart().length">{{loading()?'Procesando…':'COBRAR · F8'}}</button></div></aside></div>}</section>
+
+      <!-- Right: Cart -->
+      <aside class="cart-panel">
+        <div class="cart-header">
+          <h2>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+            Carrito
+          </h2>
+          @if (cartCount() > 0) {
+            <span class="cart-count">{{ cartCount() }}</span>
+          }
+        </div>
+
+        <div class="cart-items">
+          @for (item of cart(); track item.variantId + item.ownerId) {
+            <div class="cart-item">
+              <div class="cart-item-info">
+                <p class="cart-item-name">{{ item.productName }}</p>
+                <p class="cart-item-variant">{{ item.variantName }} · {{ item.sku }}</p>
+              </div>
+              <button class="cart-item-remove" (click)="remove(item)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              <div class="cart-item-controls">
+                <button class="qty-btn" (click)="quantity(item, -1)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                <span class="qty-value">{{ item.quantity }}</span>
+                <button class="qty-btn" (click)="quantity(item, 1)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                </button>
+                @if (canAdjustPrices()) {
+                  <div class="price-edit">
+                    <span>$</span>
+                    <input type="number" min="0" [ngModel]="item.unitPrice" (ngModelChange)="price(item, $event)">
+                  </div>
+                } @else {
+                  <span class="cart-item-price">{{ item.unitPrice | number:'1.2-2' }}</span>
+                }
+              </div>
+            </div>
+          } @empty {
+            <div class="cart-empty">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <p>Carrito vacío</p>
+              <span>Escaneá o seleccioná un producto</span>
+            </div>
+          }
+        </div>
+
+        <div class="cart-footer">
+          <!-- Customer -->
+          <div class="footer-field">
+            <label>Cliente</label>
+            <select [(ngModel)]="customerId">
+              <option value="">Consumidor final</option>
+              @for (customer of customers(); track customer.id) {
+                <option [value]="customer.id">{{ customer.first_name }} {{ customer.last_name }}</option>
+              }
+            </select>
+          </div>
+
+          <!-- Discount -->
+          @if (canAdjustPrices()) {
+            <div class="footer-field">
+              <label>Descuento general</label>
+              <input type="number" min="0" [(ngModel)]="generalDiscount" placeholder="0">
+            </div>
+          }
+
+          <!-- Totals -->
+          <div class="cart-totals">
+            <div class="total-row">
+              <span>Subtotal</span>
+              <b>{{ subtotal() | number:'1.2-2' }}</b>
+            </div>
+            @if (generalDiscount > 0) {
+              <div class="total-row total-discount">
+                <span>Descuento</span>
+                <b>-{{ generalDiscount | number:'1.2-2' }}</b>
+              </div>
+            }
+            <div class="total-row total-grand">
+              <span>Total</span>
+              <b>$ {{ total() | number:'1.2-2' }}</b>
+            </div>
+          </div>
+
+          <!-- Payment -->
+          <div class="payment-section">
+            <h3>Forma de pago</h3>
+            <div class="payment-row">
+              <select [(ngModel)]="selectedMethod" class="payment-select">
+                @for (method of methods(); track method.id) {
+                  <option [value]="method.id">{{ method.name }}</option>
+                }
+              </select>
+              <input
+                type="number"
+                min="0"
+                [(ngModel)]="paymentAmount"
+                [placeholder]="pending().toString()"
+                class="payment-input"
+              >
+              <button class="btn-add-payment" (click)="addPayment()" [disabled]="pending() <= 0">Agregar</button>
+            </div>
+            @for (payment of payments(); track $index) {
+              <div class="payment-item">
+                <span>{{ methodName(payment.paymentMethodId) }}</span>
+                <b>{{ payment.amount | number:'1.2-2' }}</b>
+                <button class="payment-remove" (click)="removePayment($index)">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+              </div>
+            }
+            <div class="payment-pending">
+              <span>Pendiente</span>
+              <b [class.pending-zero]="pending() <= 0.001">{{ pending() | number:'1.2-2' }}</b>
+            </div>
+          </div>
+
+          <!-- Charge button -->
+          <button
+            class="btn-charge"
+            (click)="charge()"
+            [disabled]="loading() || !cart().length"
+          >
+            @if (loading()) {
+              <span class="btn-spinner"></span>
+              Procesando...
+            } @else {
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+              COBRAR · F8
+            }
+          </button>
+        </div>
+      </aside>
+    </div>
+  }
+</section>
