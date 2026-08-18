@@ -19,6 +19,7 @@ interface Receipt {
   id: string; saleNumber: number; total: number; createdAt: Date;
   items: CartItem[]; payments: SalePaymentInput[];
   customerName: string; cashierName: string;
+  discount: number; discountReason: string;
 }
 
 @Component({
@@ -65,8 +66,18 @@ export class PosPageComponent implements OnInit, OnDestroy {
   scannerCode = '';
   customerId = '';
   generalDiscount = 0;
+  discountReason = '';
   selectedMethod = '';
   paymentAmount = 0;
+
+  readonly discountReasons = [
+    { value: 'Efectivo', label: 'Pago en efectivo' },
+    { value: 'Promoción', label: 'Promoción / oferta' },
+    { value: 'Cliente frecuente', label: 'Descuento cliente frecuente' },
+    { value: 'Defecto', label: 'Producto con defecto' },
+    { value: 'Mayoreo', label: 'Precio de mayoreo' },
+    { value: 'Otro', label: 'Otro motivo' },
+  ];
 
   readonly subtotal = computed(() =>
     this.cart().reduce((sum, item) => sum + item.quantity * item.unitPrice - item.discount, 0)
@@ -284,6 +295,8 @@ export class PosPageComponent implements OnInit, OnDestroy {
         payments: receiptPayments,
         customerName: customer ? `${customer.first_name} ${customer.last_name ?? ''}`.trim() : 'Consumidor final',
         cashierName: `${detail.profiles.first_name} ${detail.profiles.last_name}`.trim(),
+        discount: Number(this.generalDiscount) || 0,
+        discountReason: this.generalDiscount > 0 ? (this.discountReason || 'Otro') : '',
       });
       this.cart.set([]);
       this.showModal.set(false);
@@ -300,6 +313,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   newSale(): void {
     this.completedSale.set(null);
     this.generalDiscount = 0;
+    this.discountReason = '';
     this.paymentAmount = 0;
     this.payments.set([]);
     this.customerId = '';

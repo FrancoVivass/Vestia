@@ -36,9 +36,21 @@
           }
         </div>
         <div class="receipt-divider"></div>
-        <div class="receipt-total">
-          <span>TOTAL</span>
-          <b>$ {{ receipt.total | number:'1.2-2' }}</b>
+        <div class="receipt-totals-section">
+          <div class="receipt-subtotal">
+            <span>Subtotal</span>
+            <b>{{ receipt.total + receipt.discount | number:'1.2-2' }}</b>
+          </div>
+          @if (receipt.discount > 0) {
+            <div class="receipt-discount-line">
+              <span>Descuento ({{ receipt.discountReason }})</span>
+              <b>-{{ receipt.discount | number:'1.2-2' }}</b>
+            </div>
+          }
+          <div class="receipt-total">
+            <span>TOTAL</span>
+            <b>$ {{ receipt.total | number:'1.2-2' }}</b>
+          </div>
         </div>
         <div class="receipt-payments">
           @for (payment of receipt.payments; track $index) {
@@ -130,7 +142,18 @@
           @if (canAdjustPrices()) {
             <div class="footer-field">
               <label>Descuento</label>
-              <input type="number" min="0" [(ngModel)]="generalDiscount" placeholder="0">
+              <div class="discount-row">
+                <select [(ngModel)]="discountReason" class="discount-reason">
+                  <option value="">Sin motivo</option>
+                  @for (reason of discountReasons; track reason.value) {
+                    <option [value]="reason.value">{{ reason.label }}</option>
+                  }
+                </select>
+                <div class="discount-amount-wrap">
+                  <span>$</span>
+                  <input type="number" min="0" [(ngModel)]="generalDiscount" placeholder="0">
+                </div>
+              </div>
             </div>
           }
           <div class="cart-totals">

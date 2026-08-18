@@ -187,6 +187,35 @@
   background: var(--color-surface);
   color: var(--color-text);
 }
+.discount-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+.discount-reason {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  border-radius: 0.45rem;
+  padding: 0.4rem 0.5rem;
+  font-size: 0.72rem;
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+.discount-amount-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  border: 1px solid var(--color-border);
+  border-radius: 0.45rem;
+  padding: 0 0.45rem;
+  background: var(--color-surface);
+}
+.discount-amount-wrap span { font-size: 0.72rem; color: var(--color-muted); }
+.discount-amount-wrap input {
+  width: 100%;
+  border: none;
+  background: transparent;
+  padding: 0.4rem 0;
+  font-size: 0.78rem;
+  color: var(--color-text);
+  outline: none;
+}
 .cart-totals { display: grid; gap: 0.3rem; padding: 0.5rem 0; border-top: 1px solid var(--color-border); }
 .total-row { display: flex; justify-content: space-between; font-size: 0.8rem; }
 .total-row span { color: var(--color-muted); }
@@ -589,6 +618,12 @@
 .receipt-item-variant { font-size: 0.65rem; color: var(--color-muted); margin: 0; }
 .receipt-item-price { font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
 .receipt-total { display: flex; justify-content: space-between; font-size: 1.1rem; font-weight: 800; margin: 0.5rem 0; }
+.receipt-totals-section { display: grid; gap: 0.3rem; text-align: left; }
+.receipt-subtotal { display: flex; justify-content: space-between; font-size: 0.8rem; }
+.receipt-subtotal span { color: var(--color-muted); }
+.receipt-subtotal b { font-weight: 600; }
+.receipt-discount-line { display: flex; justify-content: space-between; font-size: 0.78rem; color: #dc2626; }
+.receipt-discount-line b { font-weight: 700; }
 .receipt-payments { display: grid; gap: 0.2rem; text-align: left; font-size: 0.75rem; }
 .receipt-payments div { display: flex; justify-content: space-between; }
 .receipt-payments span { color: var(--color-muted); }
