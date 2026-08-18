@@ -101,7 +101,7 @@ export class LoginPageComponent implements OnInit, OnDestroy {
       variant: 'success',
     });
 
-    void this.router.navigateByUrl(target);
+    window.location.href = target;
   }
 
   async onGithubLogin(): Promise<void> {
