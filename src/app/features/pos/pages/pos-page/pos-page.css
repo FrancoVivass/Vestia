@@ -646,6 +646,21 @@
 .receipt-payments span { color: var(--color-muted); }
 .receipt-payments b { font-weight: 600; }
 .receipt-footer { font-size: 0.7rem; color: var(--color-muted); margin: 0.5rem 0 0; }
+.receipt-vestia {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+  font-size: 0.6rem;
+  color: var(--color-muted);
+}
+.receipt-vestia b {
+  font-weight: 800;
+  color: var(--color-primary);
+  font-size: 0.7rem;
+  letter-spacing: 0.05em;
+}
 .receipt-actions { display: flex; justify-content: center; gap: 0.6rem; margin-top: 1.2rem; }
 
 /* ═══════════ Responsive ═══════════ */
@@ -664,7 +679,7 @@
 
 /* ═══════════ Print ═══════════ */
 @media print {
-  .pos-main, .modal-overlay, .receipt-actions, .receipt-address { display: none !important; }
+  .pos-main, .modal-overlay, .receipt-actions { display: none !important; }
   .receipt-view { padding: 0; }
   .receipt-card {
     width: var(--ticket-width, 80mm);
