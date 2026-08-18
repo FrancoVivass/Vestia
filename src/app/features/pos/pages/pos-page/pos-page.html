@@ -149,9 +149,12 @@
                     <option [value]="reason.value">{{ reason.label }}</option>
                   }
                 </select>
-                <div class="discount-amount-wrap">
-                  <span>$</span>
-                  <input type="number" min="0" [(ngModel)]="generalDiscount" placeholder="0">
+                <div class="discount-input-group">
+                  <div class="discount-type-toggle">
+                    <button [class.active]="discountType === 'amount'" (click)="discountType = 'amount'">$</button>
+                    <button [class.active]="discountType === 'percentage'" (click)="discountType = 'percentage'">%</button>
+                  </div>
+                  <input type="number" min="0" [max]="discountType === 'percentage' ? 100 : subtotal()" [(ngModel)]="generalDiscount" placeholder="0">
                 </div>
               </div>
             </div>
@@ -159,7 +162,10 @@
           <div class="cart-totals">
             <div class="total-row"><span>Subtotal</span><b>{{ subtotal() | number:'1.2-2' }}</b></div>
             @if (generalDiscount > 0) {
-              <div class="total-row total-discount"><span>Descuento</span><b>-{{ generalDiscount | number:'1.2-2' }}</b></div>
+              <div class="total-row total-discount">
+                <span>Descuento {{ discountType === 'percentage' ? '(' + generalDiscount + '%)' : '' }}</span>
+                <b>-{{ discountAmount() | number:'1.2-2' }}</b>
+              </div>
             }
             <div class="total-row total-grand"><span>Total</span><b>$ {{ total() | number:'1.2-2' }}</b></div>
           </div>

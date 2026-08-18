@@ -67,6 +67,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   customerId = '';
   generalDiscount = 0;
   discountReason = '';
+  discountType: 'amount' | 'percentage' = 'amount';
   selectedMethod = '';
   paymentAmount = 0;
 
@@ -82,7 +83,22 @@ export class PosPageComponent implements OnInit, OnDestroy {
   readonly subtotal = computed(() =>
     this.cart().reduce((sum, item) => sum + item.quantity * item.unitPrice - item.discount, 0)
   );
-  readonly total = computed(() => Math.max(0, this.subtotal() - Number(this.generalDiscount || 0)));
+  readonly total = computed(() => {
+    const sub = this.subtotal();
+    const disc = Number(this.generalDiscount || 0);
+    if (this.discountType === 'percentage') {
+      return Math.max(0, sub - sub * (disc / 100));
+    }
+    return Math.max(0, sub - disc);
+  });
+  readonly discountAmount = computed(() => {
+    const sub = this.subtotal();
+    const disc = Number(this.generalDiscount || 0);
+    if (this.discountType === 'percentage') {
+      return sub * (disc / 100);
+    }
+    return disc;
+  });
   readonly paid = computed(() => this.payments().reduce((sum, p) => sum + p.amount, 0));
   readonly pending = computed(() => Number((this.total() - this.paid()).toFixed(2)));
   readonly cartCount = computed(() => this.cart().reduce((sum, item) => sum + item.quantity, 0));
@@ -295,7 +311,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
         payments: receiptPayments,
         customerName: customer ? `${customer.first_name} ${customer.last_name ?? ''}`.trim() : 'Consumidor final',
         cashierName: `${detail.profiles.first_name} ${detail.profiles.last_name}`.trim(),
-        discount: Number(this.generalDiscount) || 0,
+        discount: this.discountAmount(),
         discountReason: this.generalDiscount > 0 ? (this.discountReason || 'Otro') : '',
       });
       this.cart.set([]);
@@ -314,6 +330,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
     this.completedSale.set(null);
     this.generalDiscount = 0;
     this.discountReason = '';
+    this.discountType = 'amount';
     this.paymentAmount = 0;
     this.payments.set([]);
     this.customerId = '';
