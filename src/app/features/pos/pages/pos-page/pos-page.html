@@ -1,52 +1,26 @@
 <section class="pos">
 
-  <!-- ─── Header ─── -->
-  <header class="pos-header">
-    <div class="header-left">
-      <h1>Punto de Venta</h1>
-      <div class="cash-pill" [class.cash-open]="cashSession()" [class.cash-closed]="!cashSession()">
-        <span class="cash-dot"></span>
-        {{ cashSession() ? cashSession().cash_registers.name : 'Sin caja abierta' }}
-      </div>
-    </div>
-    <div class="header-right">
-      @if (cartCount() > 0) {
-        <span class="cart-badge">{{ cartCount() }} en carrito</span>
-      }
-      <button class="btn-pos btn-new" (click)="newSale()" [disabled]="!completedSale() && !cart().length">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-        Nueva venta · F2
-      </button>
-    </div>
-  </header>
-
-  <!-- ─── Receipt View ─── -->
+  <!-- ═══════════ RECEIPT VIEW ═══════════ -->
   @if (completedSale(); as receipt) {
     <div class="receipt-view">
-      <div class="receipt-card" [style.--ticket-width]="ticketWidth()+'mm'">
+      <div class="receipt-card">
         <div id="sale-lottie" class="sale-lottie"></div>
 
         <div class="receipt-header">
-          @if (storeLogo()) {
-            <img [src]="storeLogo()" [alt]="storeName()" class="receipt-logo">
-          }
+          @if (storeLogo()) { <img [src]="storeLogo()" [alt]="storeName()" class="receipt-logo"> }
           <h2 class="receipt-store">{{ storeName() }}</h2>
           @if (storeAddress()) { <p>{{ storeAddress() }}</p> }
           @if (storePhone()) { <p>Tel. {{ storePhone() }}</p> }
         </div>
-
         <div class="receipt-divider"></div>
         <p class="receipt-title">COMPROBANTE DE VENTA</p>
-
         <div class="receipt-meta">
           <div><span>Nº</span><b>{{ receipt.saleNumber }}</b></div>
           <div><span>Fecha</span><b>{{ receipt.createdAt | date:'dd/MM/yyyy HH:mm' }}</b></div>
           <div><span>Cliente</span><b>{{ receipt.customerName }}</b></div>
           <div><span>Cajero</span><b>{{ receipt.cashierName }}</b></div>
         </div>
-
         <div class="receipt-divider"></div>
-
         <div class="receipt-items">
           @for (item of receipt.items; track item.variantId + item.ownerId) {
             <div class="receipt-item">
@@ -61,29 +35,24 @@
             </div>
           }
         </div>
-
         <div class="receipt-divider"></div>
-
         <div class="receipt-total">
           <span>TOTAL</span>
           <b>$ {{ receipt.total | number:'1.2-2' }}</b>
         </div>
-
         <div class="receipt-payments">
           @for (payment of receipt.payments; track $index) {
             <div><span>{{ methodName(payment.paymentMethodId) }}</span><b>{{ payment.amount | number:'1.2-2' }}</b></div>
           }
         </div>
-
         <div class="receipt-divider"></div>
         <p class="receipt-footer">¡Gracias por su compra!</p>
-
         <div class="receipt-actions">
-          <button class="btn-pos btn-primary" (click)="print()">
+          <button class="pos-btn pos-btn-outline" (click)="print()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
             Imprimir
           </button>
-          <button class="btn-pos btn-accent" (click)="newSale()">
+          <button class="pos-btn pos-btn-primary" (click)="newSale()">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Nueva venta
           </button>
@@ -92,116 +61,42 @@
     </div>
   }
 
-  <!-- ─── POS Workspace ─── -->
+  <!-- ═══════════ MAIN POS (no receipt) ═══════════ -->
   @else {
-    <div class="workspace">
+    <div class="pos-main">
 
-      <!-- Left: Catalog -->
-      <div class="catalog">
-
-        <!-- Search bar -->
-        <div class="search-bar">
-          <div class="search-main" [class.focused]="searchFocused()">
-            <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <input
-              id="pos-search"
-              name="search"
-              [(ngModel)]="search"
-              placeholder="Buscar producto por nombre, SKU, código..."
-              autofocus
-              (focus)="searchFocused.set(true)"
-              (blur)="searchFocused.set(false)"
-              (keydown.enter)="refresh()"
-            >
-            <select name="searchMode" [(ngModel)]="searchMode" aria-label="Filtro">
-              <option value="all">Todo</option>
-              <option value="name">Nombre</option>
-              <option value="sku">SKU</option>
-              <option value="internal">Interno</option>
-              <option value="barcode">Barras</option>
-            </select>
-            <button class="btn-search" (click)="refresh()">Buscar</button>
-          </div>
-          <div class="scanner-bar" [class.focused]="scannerFocused()">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 7 3 4 7 4"></polyline><polyline points="21 17 21 20 17 20"></polyline><line x1="3" y1="11" x2="21" y2="11"></line></svg>
-            <input
-              id="pos-scanner"
-              name="scannerCode"
-              [(ngModel)]="scannerCode"
-              inputmode="numeric"
-              autocomplete="off"
-              placeholder="Escanear código de barras · F6"
-              (focus)="scannerFocused.set(true)"
-              (blur)="scannerFocused.set(false)"
-            >
-          </div>
-        </div>
-
-        <!-- Product grid -->
-        <div class="products">
-          @for (row of stock(); track row.variantId + row.ownerId) {
-            <button
-              type="button"
-              class="product-card"
-              (click)="add(row)"
-              [disabled]="row.quantity === 0"
-              [class.out-of-stock]="row.quantity === 0"
-            >
-              <div class="product-top">
-                <span class="product-owner">{{ row.ownerName }}</span>
-                <span class="product-stock" [class.stock-low]="row.quantity <= 5">{{ row.quantity }} u.</span>
-              </div>
-              <h3 class="product-name">{{ row.productName }}</h3>
-              <p class="product-variant">{{ row.color || '—' }} / {{ row.size || '—' }}</p>
-              <p class="product-sku">{{ row.sku }}</p>
-              <div class="product-bottom">
-                <b class="product-price">{{ row.price | number:'1.2-2' }}</b>
-                @if (row.quantity === 0) {
-                  <span class="product-badge badge-empty">Sin stock</span>
-                } @else if (row.quantity <= 5) {
-                  <span class="product-badge badge-low">Últimas u.</span>
-                }
-              </div>
-            </button>
-          } @empty {
-            <div class="products-empty">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-              <p>No se encontraron productos</p>
-              <span>Probá con otra búsqueda o escaneá un código</span>
-            </div>
-          }
-        </div>
-      </div>
-
-      <!-- Right: Cart -->
-      <aside class="cart-panel">
+      <!-- Left: Cart Panel -->
+      <div class="cart-panel">
         <div class="cart-header">
-          <h2>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-            Carrito
-          </h2>
+          <div class="cart-header-left">
+            <div class="cash-pill" [class.cash-open]="cashSession()" [class.cash-closed]="!cashSession()">
+              <span class="cash-dot"></span>
+              {{ cashSession() ? cashSession().cash_registers.name : 'Sin caja' }}
+            </div>
+            <h2>Carrito</h2>
+          </div>
           @if (cartCount() > 0) {
-            <span class="cart-count">{{ cartCount() }}</span>
+            <span class="cart-count">{{ cartCount() }} u.</span>
           }
         </div>
 
         <div class="cart-items">
           @for (item of cart(); track item.variantId + item.ownerId) {
             <div class="cart-item">
-              <div class="cart-item-info">
+              <div class="cart-item-main">
                 <p class="cart-item-name">{{ item.productName }}</p>
-                <p class="cart-item-variant">{{ item.variantName }} · {{ item.sku }}</p>
+                <p class="cart-item-meta">{{ item.variantName }} · {{ item.sku }}</p>
               </div>
               <button class="cart-item-remove" (click)="remove(item)">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
               </button>
               <div class="cart-item-controls">
                 <button class="qty-btn" (click)="quantity(item, -1)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
                 <span class="qty-value">{{ item.quantity }}</span>
                 <button class="qty-btn" (click)="quantity(item, 1)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="14" height="14"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                 </button>
                 @if (canAdjustPrices()) {
                   <div class="price-edit">
@@ -215,15 +110,14 @@
             </div>
           } @empty {
             <div class="cart-empty">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="36" height="36"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
-              <p>Carrito vacío</p>
-              <span>Escaneá o seleccioná un producto</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path></svg>
+              <p>Sin productos</p>
+              <span>Abrí el catálogo para agregar</span>
             </div>
           }
         </div>
 
         <div class="cart-footer">
-          <!-- Customer -->
           <div class="footer-field">
             <label>Cliente</label>
             <select [(ngModel)]="customerId">
@@ -233,82 +127,198 @@
               }
             </select>
           </div>
-
-          <!-- Discount -->
           @if (canAdjustPrices()) {
             <div class="footer-field">
-              <label>Descuento general</label>
+              <label>Descuento</label>
               <input type="number" min="0" [(ngModel)]="generalDiscount" placeholder="0">
             </div>
           }
-
-          <!-- Totals -->
           <div class="cart-totals">
-            <div class="total-row">
-              <span>Subtotal</span>
-              <b>{{ subtotal() | number:'1.2-2' }}</b>
-            </div>
+            <div class="total-row"><span>Subtotal</span><b>{{ subtotal() | number:'1.2-2' }}</b></div>
             @if (generalDiscount > 0) {
-              <div class="total-row total-discount">
-                <span>Descuento</span>
-                <b>-{{ generalDiscount | number:'1.2-2' }}</b>
-              </div>
+              <div class="total-row total-discount"><span>Descuento</span><b>-{{ generalDiscount | number:'1.2-2' }}</b></div>
             }
-            <div class="total-row total-grand">
-              <span>Total</span>
-              <b>$ {{ total() | number:'1.2-2' }}</b>
-            </div>
+            <div class="total-row total-grand"><span>Total</span><b>$ {{ total() | number:'1.2-2' }}</b></div>
           </div>
-
-          <!-- Payment -->
-          <div class="payment-section">
-            <h3>Forma de pago</h3>
-            <div class="payment-row">
-              <select [(ngModel)]="selectedMethod" class="payment-select">
-                @for (method of methods(); track method.id) {
-                  <option [value]="method.id">{{ method.name }}</option>
-                }
-              </select>
-              <input
-                type="number"
-                min="0"
-                [(ngModel)]="paymentAmount"
-                [placeholder]="pending().toString()"
-                class="payment-input"
-              >
-              <button class="btn-add-payment" (click)="addPayment()" [disabled]="pending() <= 0">Agregar</button>
+          <div class="payment-row">
+            <select [(ngModel)]="selectedMethod" class="payment-select">
+              @for (method of methods(); track method.id) {
+                <option [value]="method.id">{{ method.name }}</option>
+              }
+            </select>
+            <input type="number" min="0" [(ngModel)]="paymentAmount" [placeholder]="pending().toString()" class="payment-input">
+            <button class="btn-add-pay" (click)="addPayment()" [disabled]="pending() <= 0">+</button>
+          </div>
+          @for (payment of payments(); track $index) {
+            <div class="payment-item">
+              <span>{{ methodName(payment.paymentMethodId) }}</span>
+              <b>{{ payment.amount | number:'1.2-2' }}</b>
+              <button class="payment-remove" (click)="removePayment($index)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
             </div>
-            @for (payment of payments(); track $index) {
-              <div class="payment-item">
-                <span>{{ methodName(payment.paymentMethodId) }}</span>
-                <b>{{ payment.amount | number:'1.2-2' }}</b>
-                <button class="payment-remove" (click)="removePayment($index)">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                </button>
-              </div>
-            }
+          }
+          @if (payments().length > 0) {
             <div class="payment-pending">
               <span>Pendiente</span>
               <b [class.pending-zero]="pending() <= 0.001">{{ pending() | number:'1.2-2' }}</b>
             </div>
-          </div>
-
-          <!-- Charge button -->
-          <button
-            class="btn-charge"
-            (click)="charge()"
-            [disabled]="loading() || !cart().length"
-          >
+          }
+          <button class="btn-charge" (click)="charge()" [disabled]="loading() || !cart().length">
             @if (loading()) {
-              <span class="btn-spinner"></span>
-              Procesando...
+              <span class="btn-spinner"></span> Procesando...
             } @else {
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
               COBRAR · F8
             }
           </button>
         </div>
-      </aside>
+      </div>
+
+      <!-- Right: Catalog Trigger -->
+      <div class="catalog-trigger">
+        <div class="trigger-content">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64">
+            <circle cx="9" cy="21" r="1"></circle>
+            <circle cx="20" cy="21" r="1"></circle>
+            <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+          </svg>
+          <h2>Catálogo de productos</h2>
+          <p>Abrí el catálogo para buscar, escanear y agregar productos al carrito</p>
+          <button class="pos-btn pos-btn-primary pos-btn-lg" (click)="openModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Abrir catálogo
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════════ CATALOG MODAL ═══════════ -->
+  @if (showModal()) {
+    <div class="modal-overlay" (click)="closeModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+
+        <!-- Modal Header -->
+        <div class="modal-header">
+          <h2>Agregar productos</h2>
+          <button class="modal-close" (click)="closeModal()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+          </button>
+        </div>
+
+        <!-- Tabs -->
+        <div class="modal-tabs">
+          <button class="tab" [class.tab-active]="modalTab() === 'search'" (click)="switchTab('search')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+            Buscar producto
+          </button>
+          <button class="tab" [class.tab-active]="modalTab() === 'scanner'" (click)="switchTab('scanner')">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="3 7 3 4 7 4"></polyline><polyline points="21 17 21 20 17 20"></polyline><line x1="3" y1="11" x2="21" y2="11"></line></svg>
+            Escanear código
+          </button>
+        </div>
+
+        <!-- Tab Content -->
+        <div class="modal-body">
+
+          <!-- Search Tab -->
+          @if (modalTab() === 'search') {
+            <div class="search-controls">
+              <div class="search-main" [class.focused]="modalSearchFocused()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                <input
+                  id="modal-search-input"
+                  [(ngModel)]="search"
+                  placeholder="Nombre, SKU, código interno, color, talle..."
+                  autofocus
+                  (focus)="modalSearchFocused.set(true)"
+                  (blur)="modalSearchFocused.set(false)"
+                  (keydown.enter)="modalSearch()"
+                >
+                <select [(ngModel)]="searchMode">
+                  <option value="all">Todo</option>
+                  <option value="name">Nombre</option>
+                  <option value="sku">SKU</option>
+                  <option value="internal">Interno</option>
+                  <option value="barcode">Barras</option>
+                </select>
+                <button class="btn-search" (click)="modalSearch()">Buscar</button>
+              </div>
+            </div>
+            <div class="modal-products">
+              @for (row of stock(); track row.variantId + row.ownerId) {
+                <button type="button" class="product-card" (click)="add(row)" [disabled]="row.quantity === 0" [class.oos]="row.quantity === 0">
+                  <div class="product-top">
+                    <span class="product-owner">{{ row.ownerName }}</span>
+                    <span class="product-stock" [class.stock-warn]="row.quantity <= 5">{{ row.quantity }} u.</span>
+                  </div>
+                  <h3 class="product-name">{{ row.productName }}</h3>
+                  <p class="product-variant">{{ row.color || '—' }} / {{ row.size || '—' }}</p>
+                  <p class="product-sku">{{ row.sku }}</p>
+                  <div class="product-bottom">
+                    <b class="product-price">{{ row.price | number:'1.2-2' }}</b>
+                    @if (row.quantity === 0) {
+                      <span class="badge badge-red">Sin stock</span>
+                    } @else if (row.quantity <= 5) {
+                      <span class="badge badge-yellow">Últimas</span>
+                    }
+                  </div>
+                </button>
+              } @empty {
+                <div class="modal-empty">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  <p>Sin resultados</p>
+                  <span>Probá con otro término de búsqueda</span>
+                </div>
+              }
+            </div>
+          }
+
+          <!-- Scanner Tab -->
+          @if (modalTab() === 'scanner') {
+            <div class="scanner-view">
+              <div class="scanner-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="64" height="64"><polyline points="3 7 3 4 7 4"></polyline><polyline points="21 17 21 20 17 20"></polyline><line x1="3" y1="11" x2="21" y2="11"></line></svg>
+              </div>
+              <h3>Escaneá el código de barras</h3>
+              <p>Enfocá el campo y escaneá. Enter agrega directamente al carrito.</p>
+              <form class="scanner-input-group" (ngSubmit)="modalScan()">
+                <input
+                  id="modal-scanner-input"
+                  [(ngModel)]="scannerCode"
+                  name="scannerCode"
+                  inputmode="numeric"
+                  autocomplete="off"
+                  placeholder="Escanear código..."
+                >
+                <button type="submit" [disabled]="loading()">
+                  @if (loading()) {
+                    <span class="btn-spinner"></span>
+                  } @else {
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  }
+                  Agregar
+                </button>
+              </form>
+            </div>
+          }
+        </div>
+
+        <!-- Modal Footer -->
+        <div class="modal-footer">
+          <span class="modal-footer-info">
+            @if (cartCount() > 0) {
+              <b>{{ cartCount() }}</b> productos en carrito · Total: <b>$ {{ total() | number:'1.2-2' }}</b>
+            } @else {
+              Sin productos en carrito
+            }
+          </span>
+          <button class="pos-btn pos-btn-primary" (click)="closeModal()">
+            {{ cartCount() > 0 ? 'Ir al carrito' : 'Cerrar' }}
+          </button>
+        </div>
+      </div>
     </div>
   }
 </section>

@@ -11,6 +11,8 @@ import { SaleService } from '../../../../core/services/sale.service';
 import { SupabaseService } from '../../../../core/services/supabase.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
+type ModalTab = 'search' | 'scanner';
+
 interface PaymentMethod { id: string; name: string; code: string; active: boolean; }
 interface Customer { id: string; first_name: string; last_name?: string; }
 interface Receipt {
@@ -46,8 +48,11 @@ export class PosPageComponent implements OnInit, OnDestroy {
   readonly loading = signal(false);
   readonly completedSale = signal<Receipt | null>(null);
   readonly ticketWidth = signal(80);
-  readonly searchFocused = signal(false);
-  readonly scannerFocused = signal(false);
+
+  // Modal state
+  readonly showModal = signal(false);
+  readonly modalTab = signal<ModalTab>('search');
+  readonly modalSearchFocused = signal(false);
 
   readonly canAdjustPrices = computed(() => this.permissions.hasRole('OWNER'));
   readonly storeName = computed(() => this.business.activeBusiness()?.name ?? 'VESTIA');
@@ -106,7 +111,42 @@ export class PosPageComponent implements OnInit, OnDestroy {
     }
   }
 
-  async scanBarcode(): Promise<void> {
+  openModal(): void {
+    this.showModal.set(true);
+    this.modalTab.set('search');
+    this.search = '';
+    this.searchMode = 'all';
+    this.scannerCode = '';
+    setTimeout(() => {
+      document.querySelector<HTMLInputElement>('#modal-search-input')?.focus();
+    }, 100);
+  }
+
+  closeModal(): void {
+    this.showModal.set(false);
+  }
+
+  switchTab(tab: ModalTab): void {
+    this.modalTab.set(tab);
+    if (tab === 'scanner') {
+      setTimeout(() => document.querySelector<HTMLInputElement>('#modal-scanner-input')?.focus(), 100);
+    } else {
+      setTimeout(() => document.querySelector<HTMLInputElement>('#modal-search-input')?.focus(), 100);
+    }
+  }
+
+  async modalSearch(): Promise<void> {
+    this.loading.set(true);
+    try {
+      this.stock.set(await this.inventory.list(this.search, this.searchMode));
+    } catch (error) {
+      this.fail(error);
+    } finally {
+      this.loading.set(false);
+    }
+  }
+
+  async modalScan(): Promise<void> {
     const code = this.scannerCode.trim();
     if (!code) return;
     this.loading.set(true);
@@ -135,7 +175,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
       this.fail(error);
     } finally {
       this.loading.set(false);
-      setTimeout(() => document.querySelector<HTMLInputElement>('#pos-scanner')?.focus());
+      setTimeout(() => document.querySelector<HTMLInputElement>('#modal-scanner-input')?.focus());
     }
   }
 
@@ -166,6 +206,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
         },
       ]);
     }
+    this.toast.show({ title: 'Agregado al carrito', description: row.productName, variant: 'success' });
   }
 
   quantity(item: CartItem, delta: number): void {
@@ -245,6 +286,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
         cashierName: `${detail.profiles.first_name} ${detail.profiles.last_name}`.trim(),
       });
       this.cart.set([]);
+      this.showModal.set(false);
       this.toast.show({ title: 'Venta realizada correctamente', variant: 'success' });
       await this.refresh();
       setTimeout(() => this.loadSaleAnim(), 100);
@@ -283,13 +325,17 @@ export class PosPageComponent implements OnInit, OnDestroy {
 
   @HostListener('window:keydown', ['$event'])
   shortcuts(event: KeyboardEvent): void {
+    if (event.key === 'Escape' && this.showModal()) { this.closeModal(); return; }
     if (event.key === 'F2') { event.preventDefault(); this.newSale(); }
-    if (event.key === 'F8') { event.preventDefault(); void this.charge(); }
-    if (event.key === 'F4' || (event.ctrlKey && event.key.toLowerCase() === 'k')) {
+    if (event.key === 'F8' && !this.showModal()) { event.preventDefault(); void this.charge(); }
+    if ((event.key === 'F4' || (event.ctrlKey && event.key.toLowerCase() === 'k')) && this.showModal()) {
       event.preventDefault();
-      document.querySelector<HTMLInputElement>('#pos-search')?.focus();
+      this.switchTab('search');
     }
-    if (event.key === 'F6') { event.preventDefault(); document.querySelector<HTMLInputElement>('#pos-scanner')?.focus(); }
+    if (event.key === 'F6' && this.showModal()) {
+      event.preventDefault();
+      this.switchTab('scanner');
+    }
   }
 
   private fail(error: unknown): void {
