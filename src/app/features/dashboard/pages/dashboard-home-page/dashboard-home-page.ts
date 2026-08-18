@@ -1,7 +1,7 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { CashSummary, CashService } from '../../../../core/services/cash.service';
+import { CashSummary, CashCloseReport, CashService } from '../../../../core/services/cash.service';
 import { AuthService } from '../../../../core/services/auth.service';
 import { InventoryRow, SaleListRow } from '../../../../core/models/domain.model';
 import { InventoryService } from '../../../../core/services/inventory.service';
@@ -29,7 +29,14 @@ export class DashboardHomePageComponent implements OnInit {
   readonly recentSales = signal<SaleListRow[]>([]);
   readonly ownerSales = signal<OwnerSalesRow[]>([]);
   readonly cashSummary = signal<CashSummary | null>(null);
+  readonly closeReports = signal<CashCloseReport[]>([]);
   readonly loading = signal(false);
+
+  readonly cashShortages = computed(() => this.closeReports().filter(r => r.difference < 0).slice(0, 3));
+  readonly totalCashShortage = computed(() => {
+    const total = this.closeReports().filter(r => r.difference < 0).reduce((s, r) => s + r.difference, 0);
+    return total;
+  });
 
   readonly currentUserEmail = computed(() => this.auth.user()?.email ?? '');
   readonly outOfStock = computed(() => this.inventory().filter(r => r.quantity === 0).length);
@@ -78,18 +85,20 @@ export class DashboardHomePageComponent implements OnInit {
       const from = new Date();
       from.setDate(from.getDate() - 6);
       const to = new Date().toISOString().slice(0, 10);
-      const [metrics, inventory, recentSales, ownerSales, session] = await Promise.all([
+      const [metrics, inventory, recentSales, ownerSales, session, reports] = await Promise.all([
         this.reports.dashboard(),
         this.inventoryService.list(),
         this.salesService.recent(),
         this.reports.owners(from.toISOString().slice(0, 10), to),
         this.cash.current(),
+        this.cash.closeReports(),
       ]);
       this.metrics.set(metrics);
       this.inventory.set(inventory);
       this.recentSales.set(recentSales.slice(0, 6));
       this.ownerSales.set(ownerSales);
       this.cashSummary.set(session ? await this.cash.summary(session.id) : null);
+      this.closeReports.set(reports);
     } finally {
       this.loading.set(false);
     }

@@ -124,7 +124,7 @@
         <div class="form">
           <label>Efectivo contado<input type="number" min="0" [(ngModel)]="counted"></label>
           <label>Observaciones<textarea [(ngModel)]="notes"></textarea></label>
-          <button (click)="close()">Cerrar caja</button>
+          <button (click)="openConfirmClose()">Cerrar caja</button>
         </div>
       </article>
     } @else {
@@ -142,5 +142,49 @@
         </div>
       </article>
     }
+  }
+
+  <!-- Modal de confirmación de cierre -->
+  @if (showConfirmClose()) {
+    <div class="modal-overlay" (click)="cancelClose()">
+      <div class="modal-box" (click)="$event.stopPropagation()">
+        <div class="modal-icon" [class.modal-icon-warn]="difference() < 0" [class.modal-icon-ok]="difference() >= 0">
+          @if (difference() < 0) {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+          } @else {
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+          }
+        </div>
+        <h3>¿Cerrar caja?</h3>
+        <p class="modal-desc">Vas a cerrar <b>{{ session()?.cash_registers?.name }}</b></p>
+
+        <div class="modal-comparison">
+          <div class="modal-row">
+            <span>Efectivo esperado</span>
+            <b>{{ expectedCash() | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+          <div class="modal-row">
+            <span>Efectivo contado</span>
+            <b>{{ counted | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+          <div class="modal-divider"></div>
+          <div class="modal-row modal-total" [class.modal-negative]="difference() < 0" [class.modal-positive]="difference() >= 0">
+            <span>{{ difference() >= 0 ? 'Sobrante' : 'Faltante' }}</span>
+            <b>{{ difference() | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+        </div>
+
+        @if (difference() < 0) {
+          <p class="modal-warning">Falta efectivo. Si estás seguro, confirmá el cierre.</p>
+        }
+
+        <div class="modal-actions">
+          <button class="btn-cancel" (click)="cancelClose()">Cancelar</button>
+          <button class="btn-confirm" [class.btn-confirm-warn]="difference() < 0" (click)="confirmClose()">
+            {{ difference() < 0 ? 'Cerrar con faltante' : 'Confirmar cierre' }}
+          </button>
+        </div>
+      </div>
+    </div>
   }
 </section>

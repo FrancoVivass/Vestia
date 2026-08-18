@@ -1,5 +1,5 @@
 import { CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit, inject, signal } from '@angular/core';
+import { Component, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CashService, CashSummary, CashCloseReport } from '../../../../core/services/cash.service';
 import { DataAccessService } from '../../../../core/services/data-access.service';
@@ -22,11 +22,19 @@ export class CashPageComponent implements OnInit {
   readonly reports = signal<CashCloseReport[]>([]);
   readonly loading = signal(false);
   readonly showHistory = signal(false);
+  readonly showConfirmClose = signal(false);
 
   registerId = '';
   opening = 0;
   counted = 0;
   notes = '';
+
+  readonly expectedCash = computed(() => this.summary()?.expectedCash ?? 0);
+  readonly difference = computed(() => {
+    const expected = this.expectedCash();
+    const counted = Number(this.counted);
+    return counted - expected;
+  });
 
   async ngOnInit(): Promise<void> {
     await this.load();
@@ -60,8 +68,17 @@ export class CashPageComponent implements OnInit {
     }
   }
 
-  async close(): Promise<void> {
-    if (!this.session() || !confirm('¿Confirmás el cierre de caja con el efectivo contado indicado?')) return;
+  openConfirmClose(): void {
+    this.showConfirmClose.set(true);
+  }
+
+  cancelClose(): void {
+    this.showConfirmClose.set(false);
+  }
+
+  async confirmClose(): Promise<void> {
+    this.showConfirmClose.set(false);
+    if (!this.session()) return;
     try {
       await this.cash.close(this.session().id, Number(this.counted), this.notes);
       this.toast.show({ title: 'Caja cerrada correctamente', variant: 'success' });

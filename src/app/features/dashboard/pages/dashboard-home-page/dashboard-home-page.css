@@ -127,6 +127,9 @@
 .kpi-cash .kpi-icon svg { stroke: #db2777; }
 .kpi-alert .kpi-icon.icon-alert { background: #fee2e2; color: #dc2626; }
 .kpi-alert .kpi-icon.icon-alert svg { stroke: #dc2626; }
+.kpi-shortage .kpi-icon.icon-shortage { background: #fef3c7; color: #d97706; }
+.kpi-shortage .kpi-icon.icon-shortage svg { stroke: #d97706; }
+.kpi-negative { color: #dc2626; }
 .kpi-content { display: grid; gap: 0.15rem; min-width: 0; }
 .kpi-label {
   font-size: 0.72rem;
@@ -250,6 +253,8 @@
   flex-shrink: 0;
 }
 .dot-critical { background: #dc2626; }
+.dot-cash { background: #d97706; }
+.alert-cash { border-left: 3px solid #d97706; }
 .alert-info { flex: 1; min-width: 0; }
 .alert-name {
   font-size: 0.8rem;

@@ -95,6 +95,18 @@
           </div>
         </div>
       }
+
+      @if (totalCashShortage() < 0) {
+        <div class="kpi-card kpi-shortage">
+          <div class="kpi-icon icon-shortage">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path><line x1="4" y1="4" x2="20" y2="20"></line></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Faltante de caja</span>
+            <b class="kpi-value kpi-negative">{{ totalCashShortage() | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+        </div>
+      }
     </div>
 
     <!-- Chart + Alerts -->
@@ -121,11 +133,21 @@
       <article class="panel alerts-panel">
         <div class="panel-head">
           <h2>Alertas</h2>
-          @if (lowStock().length > 0 || outOfStock() > 0) {
-            <span class="panel-badge badge-warning">{{ lowStock().length + outOfStock() }} items</span>
+          @if (lowStock().length > 0 || outOfStock() > 0 || cashShortages().length > 0) {
+            <span class="panel-badge badge-warning">{{ lowStock().length + outOfStock() + cashShortages().length }} items</span>
           }
         </div>
         <div class="alerts-list">
+          @for (shortage of cashShortages(); track shortage.id) {
+            <div class="alert-item alert-cash">
+              <div class="alert-dot dot-cash"></div>
+              <div class="alert-info">
+                <p class="alert-name">Falta en caja {{ shortage.register_name }}</p>
+                <p class="alert-meta">{{ shortage.closed_at | date:'dd/MM HH:mm' }} · Esperado: {{ shortage.expected_amount | currency:'ARS':'symbol-narrow' }} · Contado: {{ shortage.counted_amount | currency:'ARS':'symbol-narrow' }}</p>
+              </div>
+              <span class="alert-qty qty-critical">{{ shortage.difference | currency:'ARS':'symbol-narrow' }}</span>
+            </div>
+          }
           @for (row of lowStock(); track row.variantId + row.ownerId) {
             <div class="alert-item">
               <div class="alert-dot" [class.dot-critical]="row.quantity === 0"></div>
