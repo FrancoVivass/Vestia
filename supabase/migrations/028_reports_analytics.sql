@@ -114,17 +114,19 @@ SET search_path = public
 AS $$
   SELECT
     p.name AS product_name,
-    pv.name AS variant_name,
+    COALESCE(NULLIF(c.name,'') || ' / ' || NULLIF(sz.name,''), pv.sku) AS variant_name,
     SUM(si.quantity)::int AS total_quantity,
     SUM(si.subtotal) AS total_revenue
   FROM public.sales s
   JOIN public.sale_items si ON si.sale_id = s.id
   JOIN public.product_variants pv ON pv.id = si.variant_id
   JOIN public.products p ON p.id = pv.product_id
+  LEFT JOIN public.colors c ON c.id = pv.color_id
+  LEFT JOIN public.sizes sz ON sz.id = pv.size_id
   WHERE s.business_id = public.current_business_id()
     AND s.status <> 'CANCELLED'
     AND s.created_at::date BETWEEN p_from AND p_to
-  GROUP BY p.name, pv.name
+  GROUP BY p.name, pv.sku, c.name, sz.name
   ORDER BY total_quantity DESC
   LIMIT p_limit;
 $$;
@@ -170,7 +172,7 @@ SET search_path = public
 AS $$
   SELECT
     p.name AS product_name,
-    pv.name AS variant_name,
+    COALESCE(NULLIF(c.name,'') || ' / ' || NULLIF(sz.name,''), pv.sku) AS variant_name,
     pv.sku,
     COALESCE(ib.quantity, 0) AS quantity,
     pv.minimum_stock,
@@ -181,6 +183,8 @@ AS $$
     END AS status
   FROM public.product_variants pv
   JOIN public.products p ON p.id = pv.product_id
+  LEFT JOIN public.colors c ON c.id = pv.color_id
+  LEFT JOIN public.sizes sz ON sz.id = pv.size_id
   LEFT JOIN public.inventory_balances ib ON ib.variant_id = pv.id AND ib.business_id = public.current_business_id()
   WHERE pv.business_id = public.current_business_id()
     AND pv.active = true
