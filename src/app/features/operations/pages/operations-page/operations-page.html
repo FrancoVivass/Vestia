@@ -1,32 +1,276 @@
-<section>
-  <header><div><p>OPERACIONES</p><h1>Inventario físico y movimientos</h1><span>Conteos controlados, gastos trazables y movimientos de caja.</span></div></header>
+<section class="ops">
 
-  <article class="inventory-panel">
-    <div class="section-head"><div><h2>Inventario físico</h2><p>Compará el stock del sistema con el conteo real antes de aplicar ajustes.</p></div>
-      @if(inventory()){<span class="pill">EN PROCESO</span>}
+  <!-- Header -->
+  <header class="ops-header">
+    <div>
+      <p class="ops-tag">OPERACIONES</p>
+      <h1>Inventario y caja</h1>
+      <p class="ops-sub">Conteos de stock, gastos del negocio y movimientos de caja</p>
     </div>
-    @if(!inventory()){
-      <div class="start"><label>Observación inicial<textarea [(ngModel)]="inventoryNotes"></textarea></label><button (click)="startInventory()" [disabled]="loading()">Iniciar inventario</button></div>
-    }@else{
-      <div class="inventory-table"><table><thead><tr><th>Producto</th><th>Variante</th><th>Dueño</th><th>Esperado</th><th>Contado</th><th>Diferencia</th></tr></thead><tbody>
-        @for(item of inventory()!.physical_inventory_items;track item.id){<tr><td><b>{{item.product_variants.products.name}}</b><small>{{item.product_variants.sku}}</small></td><td>{{item.product_variants.colors?.name||'—'}} / {{item.product_variants.sizes?.name||'—'}}</td><td>{{item.owners.first_name}} {{item.owners.last_name}}</td><td>{{item.expected_quantity}}</td><td><input type="number" min="0" [ngModel]="count(item)" (ngModelChange)="setCount(item,$event)"></td><td><b [class.positive]="(difference(item)??0)>0" [class.negative]="(difference(item)??0)<0">{{difference(item)===null?'—':difference(item)}}</b></td></tr>}
-      </tbody></table></div>
-      <footer><button class="secondary" (click)="saveCounts()" [disabled]="loading()">Guardar conteo</button><button (click)="completeInventory()" [disabled]="loading()">Confirmar y ajustar stock</button></footer>
-    }
-  </article>
+  </header>
 
-  <div class="panels">
-    <article><h2>Registrar gasto</h2>@if(session()){
-      <label>Concepto<input [(ngModel)]="expenseConcept"></label><div class="two"><label>Categoría<input [(ngModel)]="expenseCategory"></label><label>Importe<input type="number" min="0.01" [(ngModel)]="expenseAmount"></label></div>
-      <div class="two"><label>Tipo de pago<select [(ngModel)]="expenseMethodId">@for(method of methods();track method.id){<option [value]="method.id">{{method.name}}</option>}</select></label><label>Asignación<select [(ngModel)]="expenseOwnerId"><option value="">Gasto general</option>@for(owner of owners();track owner.id){<option [value]="owner.id">{{owner.first_name}} {{owner.last_name}}</option>}</select></label></div>
-      <label>Fecha<input type="datetime-local" [(ngModel)]="expenseDate"></label><label>Observación<textarea [(ngModel)]="expenseNotes"></textarea></label><button (click)="registerExpense()" [disabled]="loading()">Registrar gasto</button>
-    }@else{<p>Abrí una caja para registrar gastos.</p>}</article>
-    <article><h2>Otro movimiento de caja</h2>@if(session()){
-      <label>Tipo<select [(ngModel)]="movementType"><option value="INCOME">Ingreso</option><option value="WITHDRAWAL">Retiro</option></select></label><label>Importe<input type="number" min="0.01" [(ngModel)]="movementAmount"></label><label>Descripción<textarea [(ngModel)]="movementDescription"></textarea></label><button (click)="registerMovement()" [disabled]="loading()">Registrar movimiento</button>
-    }@else{<p>No existe una caja abierta.</p>}</article>
+  <!-- Status Bar -->
+  <div class="ops-status">
+    <div class="status-item">
+      <span class="status-dot" [class.dot-open]="session()"></span>
+      {{ session() ? 'Caja abierta' : 'Sin caja abierta' }}
+    </div>
+    @if (inventory()) {
+      <div class="status-item status-active">
+        <span class="status-dot dot-active"></span>
+        Inventario físico en proceso
+      </div>
+    }
   </div>
 
-  <article><h2>Últimos gastos</h2><div class="inventory-table"><table><thead><tr><th>Fecha</th><th>Concepto</th><th>Categoría</th><th>Asignación</th><th>Tipo de pago</th><th>Importe</th></tr></thead><tbody>
-    @for(expense of expenses();track expense.id){<tr><td>{{expense.occurred_at|date:'dd/MM/yyyy HH:mm'}}</td><td>{{expense.concept}}</td><td>{{expense.category}}</td><td>{{ownerName(expense)}}</td><td>{{expense.payment_methods?.name||'Sin especificar'}}</td><td><b>{{expense.amount|currency:'ARS':'symbol-narrow'}}</b></td></tr>}@empty{<tr><td colspan="6">Todavía no hay gastos registrados.</td></tr>}
-  </tbody></table></div></article>
+  <!-- Tabs -->
+  <div class="ops-tabs">
+    <button class="tab" [class.tab-active]="activeTab() === 'inventory'" (click)="activeTab.set('inventory')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+      Inventario físico
+    </button>
+    <button class="tab" [class.tab-active]="activeTab() === 'expenses'" (click)="activeTab.set('expenses')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+      Registrar gasto
+    </button>
+    <button class="tab" [class.tab-active]="activeTab() === 'movements'" (click)="activeTab.set('movements')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+      Movimientos de caja
+    </button>
+  </div>
+
+  <!-- ═══════ INVENTORY TAB ═══════ -->
+  @if (activeTab() === 'inventory') {
+    <div class="ops-content">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Inventario físico</h2>
+            <p>Compará el stock del sistema con el conteo real antes de aplicar ajustes al stock</p>
+          </div>
+          @if (inventory()) {
+            <span class="badge badge-active">En proceso</span>
+          }
+        </div>
+        <div class="card-body">
+          @if (!inventory()) {
+            <div class="empty-state">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path></svg>
+              <p>No hay inventario físico activo</p>
+              <span>Al iniciarse, se guarda una foto del stock actual para comparar con tu conteo real</span>
+              <div class="start-form">
+                <textarea [(ngModel)]="inventoryNotes" placeholder="Observación inicial (opcional)"></textarea>
+                <button class="btn-primary" (click)="startInventory()" [disabled]="loading()">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                  Iniciar inventario
+                </button>
+              </div>
+            </div>
+          } @else {
+            <div class="inventory-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Producto</th>
+                    <th>Variante</th>
+                    <th>Dueño</th>
+                    <th>Esperado</th>
+                    <th>Contado</th>
+                    <th>Diferencia</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of inventory()!.physical_inventory_items; track item.id) {
+                    <tr>
+                      <td>
+                        <b>{{ item.product_variants.products.name }}</b>
+                        <small>{{ item.product_variants.sku }}</small>
+                      </td>
+                      <td>{{ item.product_variants.colors?.name || '—' }} / {{ item.product_variants.sizes?.name || '—' }}</td>
+                      <td>{{ item.owners.first_name }} {{ item.owners.last_name }}</td>
+                      <td class="td-center">{{ item.expected_quantity }}</td>
+                      <td class="td-center">
+                        <input type="number" min="0" [ngModel]="count(item)" (ngModelChange)="setCount(item, $event)">
+                      </td>
+                      <td class="td-center">
+                        @if (difference(item) !== null) {
+                          <span class="diff" [class.positive]="difference(item)! > 0" [class.negative]="difference(item)! < 0">
+                            {{ difference(item)! > 0 ? '+' : '' }}{{ difference(item) }}
+                          </span>
+                        } @else {
+                          <span class="diff pending">—</span>
+                        }
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+            <div class="inventory-actions">
+              <button class="btn-outline" (click)="saveCounts()" [disabled]="loading()">Guardar conteo</button>
+              <button class="btn-primary" (click)="completeInventory()" [disabled]="loading()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                Confirmar y ajustar stock
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════ EXPENSES TAB ═══════ -->
+  @if (activeTab() === 'expenses') {
+    <div class="ops-content">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Registrar gasto</h2>
+            <p>Registrá gastos del negocio vinculados a la caja y al dueño correspondiente</p>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (session()) {
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Concepto</label>
+                <input [(ngModel)]="expenseConcept" placeholder="Ej: Electricidad, alquiler, insumos...">
+              </div>
+              <div class="form-field">
+                <label>Categoría</label>
+                <input [(ngModel)]="expenseCategory" placeholder="General">
+              </div>
+              <div class="form-field">
+                <label>Importe</label>
+                <input type="number" min="0.01" [(ngModel)]="expenseAmount" placeholder="0">
+              </div>
+              <div class="form-field">
+                <label>Tipo de pago</label>
+                <select [(ngModel)]="expenseMethodId">
+                  @for (method of methods(); track method.id) {
+                    <option [value]="method.id">{{ method.name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Asignación</label>
+                <select [(ngModel)]="expenseOwnerId">
+                  <option value="">Gasto general</option>
+                  @for (owner of owners(); track owner.id) {
+                    <option [value]="owner.id">{{ owner.first_name }} {{ owner.last_name }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-field">
+                <label>Fecha</label>
+                <input type="datetime-local" [(ngModel)]="expenseDate">
+              </div>
+            </div>
+            <div class="form-field">
+              <label>Observación</label>
+              <textarea [(ngModel)]="expenseNotes" placeholder="Detalles adicionales (opcional)"></textarea>
+            </div>
+            <button class="btn-primary" (click)="registerExpense()" [disabled]="loading()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Registrar gasto
+            </button>
+          } @else {
+            <div class="empty-state empty-warn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p>No hay caja abierta</p>
+              <span>Abrí una caja desde el módulo de Caja para poder registrar gastos</span>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- Recent Expenses -->
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Últimos gastos</h2>
+            <p>Historial de gastos registrados</p>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+                  <th>Concepto</th>
+                  <th>Categoría</th>
+                  <th>Asignación</th>
+                  <th>Pago</th>
+                  <th>Importe</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (expense of expenses(); track expense.id) {
+                  <tr>
+                    <td>{{ expense.occurred_at | date:'dd/MM HH:mm' }}</td>
+                    <td><b>{{ expense.concept }}</b></td>
+                    <td>{{ expense.category }}</td>
+                    <td>{{ ownerName(expense) }}</td>
+                    <td>{{ expense.payment_methods?.name || '—' }}</td>
+                    <td class="td-amount">{{ expense.amount | currency:'ARS':'symbol-narrow' }}</td>
+                  </tr>
+                } @empty {
+                  <tr><td colspan="6" class="empty-row">Todavía no hay gastos registrados.</td></tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- ═══════ MOVEMENTS TAB ═══════ -->
+  @if (activeTab() === 'movements') {
+    <div class="ops-content">
+      <div class="card">
+        <div class="card-header">
+          <div>
+            <h2>Movimiento de caja</h2>
+            <p>Registrá ingresos extra o retiros de efectivo que no son ventas ni gastos</p>
+          </div>
+        </div>
+        <div class="card-body">
+          @if (session()) {
+            <div class="movement-types">
+              <button class="movement-type" [class.type-active]="movementType === 'INCOME'" (click)="movementType = 'INCOME'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+                Ingreso
+              </button>
+              <button class="movement-type" [class.type-active]="movementType === 'WITHDRAWAL'" (click)="movementType = 'WITHDRAWAL'">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
+                Retiro
+              </button>
+            </div>
+            <div class="form-grid">
+              <div class="form-field">
+                <label>Importe</label>
+                <input type="number" min="0.01" [(ngModel)]="movementAmount" placeholder="0">
+              </div>
+            </div>
+            <div class="form-field">
+              <label>Descripción</label>
+              <textarea [(ngModel)]="movementDescription" placeholder="¿Por qué se registra este movimiento?"></textarea>
+            </div>
+            <button class="btn-primary" (click)="registerMovement()" [disabled]="loading()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+              Registrar movimiento
+            </button>
+          } @else {
+            <div class="empty-state empty-warn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+              <p>No hay caja abierta</p>
+              <span>Abrí una caja desde el módulo de Caja para registrar movimientos</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  }
 </section>
