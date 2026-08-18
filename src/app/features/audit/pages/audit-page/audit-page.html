@@ -1,1 +1,117 @@
-<section><header><p>AUDITORÍA</p><h1>Registro de operaciones</h1><span>Historial inmutable de acciones críticas.</span></header><div>@for(r of rows();track r.id){<article><time>{{r.created_at|date:'dd/MM/yyyy HH:mm:ss'}}</time><b>{{r.action}} · {{r.entity_type}}</b><span>{{r.profiles?.first_name||'Sistema'}} {{r.profiles?.last_name}}</span><code>{{r.entity_id||'—'}}</code></article>}@empty{<p>No hay eventos registrados.</p>}</div></section>
+<section class="audit">
+
+  <!-- Header -->
+  <header class="audit-header">
+    <div>
+      <p class="audit-tag">AUDITORÍA</p>
+      <h1>Registro de operaciones</h1>
+      <p class="audit-sub">Historial inmutable de acciones críticas del negocio</p>
+    </div>
+  </header>
+
+  <!-- Stats -->
+  <div class="audit-stats">
+    <div class="stat-card">
+      <span class="stat-value">{{ stats().total }}</span>
+      <span class="stat-label">Total registros</span>
+    </div>
+    <div class="stat-card stat-today">
+      <span class="stat-value">{{ stats().today }}</span>
+      <span class="stat-label">Hoy</span>
+    </div>
+    <div class="stat-card stat-sales">
+      <span class="stat-value">{{ stats().sales }}</span>
+      <span class="stat-label">Ventas</span>
+    </div>
+    <div class="stat-card stat-returns">
+      <span class="stat-value">{{ stats().returns }}</span>
+      <span class="stat-label">Devoluciones</span>
+    </div>
+    <div class="stat-card stat-purchases">
+      <span class="stat-value">{{ stats().purchases }}</span>
+      <span class="stat-label">Compras</span>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="audit-filters">
+    <div class="filter-group">
+      <label>Acción</label>
+      <select [(ngModel)]="filterAction">
+        @for (action of actions; track action) {
+          <option [value]="action">{{ action === 'ALL' ? 'Todas' : actionLabel(action) }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Tipo</label>
+      <select [(ngModel)]="filterEntity">
+        @for (entity of entities; track entity) {
+          <option [value]="entity">{{ entity === 'ALL' ? 'Todos' : entityLabel(entity) }}</option>
+        }
+      </select>
+    </div>
+    <div class="filter-group filter-search">
+      <label>Buscar</label>
+      <input type="text" [(ngModel)]="searchQuery" placeholder="Nombre, ID, tipo...">
+    </div>
+    <div class="filter-count">
+      {{ filteredRows().length }} resultados
+    </div>
+  </div>
+
+  <!-- Timeline -->
+  <div class="audit-timeline">
+    @if (loading()) {
+      <div class="audit-loading">
+        <div class="loading-spinner"></div>
+        <p>Cargando registros...</p>
+      </div>
+    } @else if (filteredRows().length === 0) {
+      <div class="audit-empty">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        <p>Sin resultados</p>
+        <span>No hay registros que coincidan con los filtros</span>
+      </div>
+    } @else {
+      @for (row of filteredRows(); track row.id) {
+        <div class="timeline-item" [class.expanded]="expandedId() === row.id">
+          <div class="timeline-dot" [style.background]="actionColor(row.action)"></div>
+          <div class="timeline-card" (click)="toggleExpand(row.id)">
+            <div class="card-top">
+              <div class="card-entity">
+                <span class="entity-icon">{{ entityIcon(row.entity_type) }}</span>
+                <span class="entity-badge">{{ entityLabel(row.entity_type) }}</span>
+              </div>
+              <span class="action-badge" [style.background]="actionColor(row.action)">
+                {{ actionLabel(row.action) }}
+              </span>
+            </div>
+            <div class="card-body">
+              <div class="card-actor">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                {{ actorName(row) }}
+              </div>
+              <div class="card-time">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                {{ row.created_at | date:'dd/MM/yyyy HH:mm:ss' }}
+              </div>
+            </div>
+            @if (row.entity_id) {
+              <div class="card-id">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                <code>{{ row.entity_id | slice:0:8 }}...</code>
+              </div>
+            }
+            @if (expandedId() === row.id && hasMetadata(row.metadata)) {
+              <div class="card-metadata">
+                <p class="metadata-title">Detalles</p>
+                <pre>{{ formatMetadata(row.metadata) }}</pre>
+              </div>
+            }
+          </div>
+        </div>
+      }
+    }
+  </div>
+</section>
