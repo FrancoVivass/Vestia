@@ -60,7 +60,6 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
-  v_summary JSONB;
   v_register_name TEXT;
   v_sales NUMERIC := 0;
   v_income NUMERIC := 0;
@@ -101,18 +100,22 @@ BEGIN
       group by coalesce(pm.name, 'Sin especificar')
     ) grouped;
 
-    INSERT INTO public.cash_close_reports (
-      business_id, cash_session_id, closed_by, closed_at, register_name, opening_amount,
-      expected_amount, counted_amount, difference,
-      total_sales, total_income, total_expenses, total_withdrawals, total_refunds,
-      payments_breakdown, notes
-    ) VALUES (
-      NEW.business_id, NEW.id, NEW.closed_by, NEW.closed_at,
-      COALESCE(v_register_name, 'Sin nombre'), NEW.opening_amount,
-      v_expected, COALESCE(NEW.counted_amount, 0), COALESCE(NEW.difference, 0),
-      v_sales, v_income, v_expenses, v_withdrawals, v_refunds,
-      v_payments, COALESCE(NEW.notes, '')
-    );
+    BEGIN
+      INSERT INTO public.cash_close_reports (
+        business_id, cash_session_id, closed_by, closed_at, register_name, opening_amount,
+        expected_amount, counted_amount, difference,
+        total_sales, total_income, total_expenses, total_withdrawals, total_refunds,
+        payments_breakdown, notes
+      ) VALUES (
+        NEW.business_id, NEW.id, NEW.closed_by, NEW.closed_at,
+        COALESCE(v_register_name, 'Sin nombre'), NEW.opening_amount,
+        v_expected, COALESCE(NEW.counted_amount, 0), COALESCE(NEW.difference, 0),
+        v_sales, v_income, v_expenses, v_withdrawals, v_refunds,
+        v_payments, COALESCE(NEW.notes, '')
+      );
+    EXCEPTION WHEN OTHERS THEN
+      RAISE NOTICE 'Error creando reporte de cierre: %', SQLERRM;
+    END;
 
   END IF;
 

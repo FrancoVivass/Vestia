@@ -187,7 +187,6 @@ DECLARE
 BEGIN
   IF NEW.status = 'CLOSED' AND OLD.status = 'OPEN' THEN
     v_diff := COALESCE(NEW.difference, 0);
-
     IF v_diff = 0 THEN
       v_msg := 'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' cerrada. Diferencia: $0';
     ELSIF v_diff > 0 THEN
@@ -196,12 +195,14 @@ BEGIN
       v_msg := 'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' cerrada. Faltante: $' || ABS(v_diff);
     END IF;
 
-    INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-    SELECT NEW.business_id, pr.auth_user_id, 'Caja cerrada', v_msg, 'cash', 'cash_session', NEW.id
-    FROM public.profiles pr
-    WHERE pr.business_id = NEW.business_id AND pr.active = true;
+    BEGIN
+      INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
+      SELECT NEW.business_id, pr.auth_user_id, 'Caja cerrada', v_msg, 'cash', 'cash_session', NEW.id
+      FROM public.profiles pr WHERE pr.business_id = NEW.business_id AND pr.active = true;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE NOTICE 'Error creando notificación de cierre: %', SQLERRM;
+    END;
   END IF;
-
   RETURN NEW;
 END;
 $$;
@@ -221,18 +222,18 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  v_msg TEXT;
 BEGIN
   IF NEW.status = 'OPEN' THEN
-    v_msg := 'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' abierta con $' || NEW.opening_amount;
-
-    INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-    SELECT NEW.business_id, pr.auth_user_id, 'Caja abierta', v_msg, 'cash', 'cash_session', NEW.id
-    FROM public.profiles pr
-    WHERE pr.business_id = NEW.business_id AND pr.active = true;
+    BEGIN
+      INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
+      SELECT NEW.business_id, pr.auth_user_id, 'Caja abierta',
+        'Caja ' || (SELECT name FROM cash_registers WHERE id = NEW.cash_register_id) || ' abierta con $' || NEW.opening_amount,
+        'cash', 'cash_session', NEW.id
+      FROM public.profiles pr WHERE pr.business_id = NEW.business_id AND pr.active = true;
+    EXCEPTION WHEN OTHERS THEN
+      RAISE NOTICE 'Error creando notificación de apertura: %', SQLERRM;
+    END;
   END IF;
-
   RETURN NEW;
 END;
 $$;
@@ -252,23 +253,16 @@ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-DECLARE
-  v_total NUMERIC;
-  v_customer TEXT;
 BEGIN
-  v_total := COALESCE(NEW.total, 0);
-  v_customer := COALESCE((SELECT first_name || ' ' || last_name FROM customers WHERE id = NEW.customer_id), 'Consumidor final');
-
-  INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
-  SELECT NEW.business_id, pr.auth_user_id,
-    'Nueva venta',
-    'Venta por $' || v_total || ' a ' || v_customer,
-    'sale',
-    'sale',
-    NEW.id
-  FROM public.profiles pr
-  WHERE pr.business_id = NEW.business_id AND pr.active = true;
-
+  BEGIN
+    INSERT INTO public.notifications (business_id, user_id, title, message, type, entity_type, entity_id)
+    SELECT NEW.business_id, pr.auth_user_id, 'Nueva venta',
+      'Venta por $' || COALESCE(NEW.total, 0) || ' a ' || COALESCE((SELECT first_name || ' ' || last_name FROM customers WHERE id = NEW.customer_id), 'Consumidor final'),
+      'sale', 'sale', NEW.id
+    FROM public.profiles pr WHERE pr.business_id = NEW.business_id AND pr.active = true;
+  EXCEPTION WHEN OTHERS THEN
+    RAISE NOTICE 'Error creando notificación de venta: %', SQLERRM;
+  END;
   RETURN NEW;
 END;
 $$;
