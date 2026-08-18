@@ -1,3 +1,195 @@
-<section class="dash"><header><div><p>RESUMEN GENERAL</p><h1>Dashboard</h1><span>{{currentUserEmail()}}</span></div><app-button label="Ir al POS" (buttonClick)="router.navigate(['/app/pos'])" /></header>@if(loading()){<p>Cargando indicadores reales…</p>}@else if(metrics();as summary){<div class="metrics"><app-card><span>Ventas de hoy</span><strong>{{summary.today_sales|currency:'ARS':'symbol-narrow'}}</strong></app-card><app-card><span>Ventas del mes</span><strong>{{summary.month_sales|currency:'ARS':'symbol-narrow'}}</strong></app-card><app-card><span>Stock total</span><strong>{{summary.total_stock}}</strong></app-card><app-card><span>Stock bajo</span><strong>{{summary.low_stock}}</strong></app-card><app-card><span>Sin stock</span><strong>{{outOfStock()}}</strong></app-card><app-card><span>Unidades vendidas (7 días)</span><strong>{{unitsSold()}}</strong></app-card><app-card><span>Ganancia estimada (7 días)</span><strong>{{estimatedProfit()|currency:'ARS':'symbol-narrow'}}</strong></app-card><app-card><span>Efectivo esperado</span><strong>{{(cashSummary()?.expectedCash??0)|currency:'ARS':'symbol-narrow'}}</strong></app-card></div>
-<div class="panels"><article><h2>Ventas netas de los últimos 7 días</h2><div class="chart">@for(point of chart();track point.date){<div class="bar-row"><time>{{point.date|date:'EEE dd'}}</time><span><i [style.width.%]="point.width"></i></span><b>{{point.amount|currency:'ARS':'symbol-narrow'}}</b></div>}</div></article><article><h2>Alertas de reposición</h2>@for(row of lowStock();track row.variantId+row.ownerId){<div class="alert-row"><span><b>{{row.productName}}</b><small>{{row.sku}} · {{row.ownerName}}</small></span><strong>{{row.quantity}} u.</strong></div>}@empty{<p>No hay variantes con stock bajo.</p>}<app-button label="Ver inventario" variant="secondary" (buttonClick)="router.navigate(['/app/inventario'])"/></article></div>
-<article class="sales"><div class="section-head"><h2>Últimas ventas</h2><button (click)="router.navigate(['/app/ventas'])">Ver historial</button></div><div class="table"><table><thead><tr><th>Número</th><th>Fecha</th><th>Cliente</th><th>Estado</th><th>Total</th></tr></thead><tbody>@for(sale of recentSales();track sale.id){<tr><td>#{{sale.sale_number}}</td><td>{{sale.created_at|date:'dd/MM HH:mm'}}</td><td>{{sale.customers?.first_name||'Consumidor final'}} {{sale.customers?.last_name}}</td><td>{{sale.status}}</td><td><b>{{sale.total|currency:'ARS':'symbol-narrow'}}</b></td></tr>}@empty{<tr><td colspan="5">Todavía no hay ventas.</td></tr>}</tbody></table></div></article>}@else{<app-empty-state title="Sin indicadores" description="No fue posible consultar el resumen del comercio." />}</section>
+<section class="dash">
+  <!-- Header -->
+  <header class="dash-header">
+    <div class="header-greeting">
+      <p class="header-tag">DASHBOARD</p>
+      <h1>{{ greeting() }}, {{ userName() }}</h1>
+      <p class="header-sub">Resumen de tu negocio hoy</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="router.navigate(['/app/pos'])">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="18" height="18"><line x1="9" y1="18" x2="15" y2="18"></line><line x1="10" y1="22" x2="14" y2="22"></line><path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"></path></svg>
+        Abrir POS
+      </button>
+      <button class="btn-ghost" (click)="router.navigate(['/app/reportes'])">Ver reportes</button>
+    </div>
+  </header>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="loading-spinner"></div>
+      <p>Cargando datos del negocio...</p>
+    </div>
+  } @else if (metrics(); as m) {
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+      <div class="kpi-card kpi-sales">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Ventas de hoy</span>
+          <b class="kpi-value">{{ m.today_sales | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-month">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Ventas del mes</span>
+          <b class="kpi-value">{{ m.month_sales | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-profit">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Ganancia (7 días)</span>
+          <b class="kpi-value">{{ estimatedProfit() | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-units">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Unidades vendidas</span>
+          <b class="kpi-value">{{ unitsSold() }}</b>
+        </div>
+      </div>
+
+      <div class="kpi-card kpi-stock">
+        <div class="kpi-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Stock total</span>
+          <b class="kpi-value">{{ m.total_stock }} u.</b>
+        </div>
+      </div>
+
+      <div class="kpi-card" [class.kpi-alert]="m.low_stock > 0 || outOfStock() > 0">
+        <div class="kpi-icon icon-alert">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </div>
+        <div class="kpi-content">
+          <span class="kpi-label">Stock bajo / agotado</span>
+          <b class="kpi-value">{{ m.low_stock }} / {{ outOfStock() }}</b>
+        </div>
+      </div>
+
+      @if (cashSummary(); as cs) {
+        <div class="kpi-card kpi-cash">
+          <div class="kpi-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+          </div>
+          <div class="kpi-content">
+            <span class="kpi-label">Efectivo en caja</span>
+            <b class="kpi-value">{{ cs.expectedCash | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Chart + Alerts -->
+    <div class="two-cols">
+      <article class="panel chart-panel">
+        <div class="panel-head">
+          <h2>Ventas de la semana</h2>
+          <span class="panel-badge">Últimos 7 días</span>
+        </div>
+        <div class="bar-chart">
+          @for (point of chart(); track point.date) {
+            <div class="bar-col">
+              <span class="bar-amount">{{ point.amount > 0 ? (point.amount | currency:'ARS':'symbol-narrow') : '—' }}</span>
+              <div class="bar-track">
+                <div class="bar-fill" [style.height.%]="point.height"></div>
+              </div>
+              <span class="bar-day">{{ point.date | date:'EEE' }}</span>
+              <span class="bar-date">{{ point.date | date:'dd' }}</span>
+            </div>
+          }
+        </div>
+      </article>
+
+      <article class="panel alerts-panel">
+        <div class="panel-head">
+          <h2>Alertas</h2>
+          @if (lowStock().length > 0 || outOfStock() > 0) {
+            <span class="panel-badge badge-warning">{{ lowStock().length + outOfStock() }} items</span>
+          }
+        </div>
+        <div class="alerts-list">
+          @for (row of lowStock(); track row.variantId + row.ownerId) {
+            <div class="alert-item">
+              <div class="alert-dot" [class.dot-critical]="row.quantity === 0"></div>
+              <div class="alert-info">
+                <p class="alert-name">{{ row.productName }}</p>
+                <p class="alert-meta">{{ row.sku }} · {{ row.ownerName }}</p>
+              </div>
+              <span class="alert-qty" [class.qty-critical]="row.quantity === 0">{{ row.quantity }} u.</span>
+            </div>
+          } @empty {
+            <div class="empty-alerts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="32" height="32"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+              <p>TodoOK con el stock</p>
+            </div>
+          }
+        </div>
+        <button class="link-btn" (click)="router.navigate(['/app/inventario'])">Ver inventario completo</button>
+      </article>
+    </div>
+
+    <!-- Recent Sales -->
+    <article class="panel sales-panel">
+      <div class="panel-head">
+        <h2>Últimas ventas</h2>
+        <button class="link-btn" (click)="router.navigate(['/app/ventas'])">Ver todo</button>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Nº</th>
+              <th>Fecha</th>
+              <th>Cliente</th>
+              <th>Estado</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (sale of recentSales(); track sale.id) {
+              <tr>
+                <td class="td-num">#{{ sale.sale_number }}</td>
+                <td>{{ sale.created_at | date:'dd/MM HH:mm' }}</td>
+                <td>{{ sale.customers?.first_name || 'Consumidor final' }}</td>
+                <td>
+                  <span class="status-badge" [class.status-completed]="sale.status === 'COMPLETED'" [class.status-cancelled]="sale.status === 'CANCELLED'">
+                    {{ saleStatusLabel(sale.status) }}
+                  </span>
+                </td>
+                <td class="td-amount">{{ sale.total | currency:'ARS':'symbol-narrow' }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="5" class="empty-row">Todavía no hay ventas registradas.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </article>
+
+  } @else {
+    <div class="empty-state">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="48" height="48"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+      <h2>Sin datos disponibles</h2>
+      <p>No fue posible cargar el resumen del comercio.</p>
+      <button class="btn-primary" (click)="load()">Reintentar</button>
+    </div>
+  }
+</section>
