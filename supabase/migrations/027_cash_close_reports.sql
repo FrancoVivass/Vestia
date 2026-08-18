@@ -62,63 +62,56 @@ AS $$
 DECLARE
   v_summary JSONB;
   v_register_name TEXT;
+  v_sales NUMERIC := 0;
+  v_income NUMERIC := 0;
+  v_expenses NUMERIC := 0;
+  v_withdrawals NUMERIC := 0;
+  v_refunds NUMERIC := 0;
+  v_expected NUMERIC := 0;
+  v_payments JSONB := '[]'::jsonb;
 BEGIN
-  -- Solo al cerrar caja
   IF NEW.status = 'CLOSED' AND OLD.status = 'OPEN' THEN
 
-    -- Nombre de la caja
     SELECT name INTO v_register_name
     FROM public.cash_registers
     WHERE id = NEW.cash_register_id;
 
-    -- Calcular el resumen desde cash_movements
-    SELECT jsonb_build_object(
-      'opening', NEW.opening_amount,
-      'expectedCash', NEW.opening_amount + coalesce(sum(case
+    SELECT
+      coalesce(sum(movement.amount) filter(where movement.movement_type = 'SALE'), 0),
+      coalesce(sum(movement.amount) filter(where movement.movement_type = 'INCOME'), 0),
+      abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'EXPENSE'), 0)),
+      abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'WITHDRAWAL'), 0)),
+      abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'REFUND'), 0)),
+      NEW.opening_amount + coalesce(sum(case
         when movement.movement_type = 'SALE' and method.code = 'CASH' then movement.amount
         when movement.movement_type in ('INCOME','EXPENSE','WITHDRAWAL','REFUND','CLOSING_ADJUSTMENT') then movement.amount
-        else 0 end), 0),
-      'sales', coalesce(sum(movement.amount) filter(where movement.movement_type = 'SALE'), 0),
-      'income', coalesce(sum(movement.amount) filter(where movement.movement_type = 'INCOME'), 0),
-      'expenses', abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'EXPENSE'), 0)),
-      'withdrawals', abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'WITHDRAWAL'), 0)),
-      'refunds', abs(coalesce(sum(movement.amount) filter(where movement.movement_type = 'REFUND'), 0)),
-      'payments', coalesce((
-        select jsonb_agg(jsonb_build_object('name', grouped.name, 'amount', grouped.amount) order by grouped.name)
-        from (
-          select coalesce(pm.name, 'Sin especificar') as name, sum(cm.amount) as amount
-          from public.cash_movements cm
-          left join public.payment_methods pm on pm.id = cm.payment_method_id
-          where cm.cash_session_id = NEW.id and cm.movement_type = 'SALE'
-          group by coalesce(pm.name, 'Sin especificar')
-        ) grouped
-      ), '[]'::jsonb)
-    ) INTO v_summary
+        else 0 end), 0)
+    INTO v_sales, v_income, v_expenses, v_withdrawals, v_refunds, v_expected
     FROM public.cash_movements movement
     LEFT JOIN public.payment_methods method ON method.id = movement.payment_method_id
-    WHERE movement.cash_session_id = NEW.id
-    GROUP BY NEW.opening_amount;
+    WHERE movement.cash_session_id = NEW.id;
 
-    -- Insertar el reporte
+    SELECT coalesce(jsonb_agg(jsonb_build_object('name', grouped.name, 'amount', grouped.amount) order by grouped.name), '[]'::jsonb)
+    INTO v_payments
+    FROM (
+      select coalesce(pm.name, 'Sin especificar') as name, sum(cm.amount) as amount
+      from public.cash_movements cm
+      left join public.payment_methods pm on pm.id = cm.payment_method_id
+      where cm.cash_session_id = NEW.id and cm.movement_type = 'SALE'
+      group by coalesce(pm.name, 'Sin especificar')
+    ) grouped;
+
     INSERT INTO public.cash_close_reports (
-      business_id, cash_session_id, closed_by, closed_at,
-      register_name, opening_amount,
+      business_id, cash_session_id, closed_by, closed_at, register_name, opening_amount,
       expected_amount, counted_amount, difference,
       total_sales, total_income, total_expenses, total_withdrawals, total_refunds,
       payments_breakdown, notes
     ) VALUES (
       NEW.business_id, NEW.id, NEW.closed_by, NEW.closed_at,
       COALESCE(v_register_name, 'Sin nombre'), NEW.opening_amount,
-      COALESCE((v_summary ->> 'expectedCash')::numeric, 0),
-      COALESCE(NEW.counted_amount, 0),
-      COALESCE(NEW.difference, 0),
-      COALESCE((v_summary ->> 'sales')::numeric, 0),
-      COALESCE((v_summary ->> 'income')::numeric, 0),
-      COALESCE((v_summary ->> 'expenses')::numeric, 0),
-      COALESCE((v_summary ->> 'withdrawals')::numeric, 0),
-      COALESCE((v_summary ->> 'refunds')::numeric, 0),
-      COALESCE(v_summary -> 'payments', '[]'::jsonb),
-      COALESCE(NEW.notes, '')
+      v_expected, COALESCE(NEW.counted_amount, 0), COALESCE(NEW.difference, 0),
+      v_sales, v_income, v_expenses, v_withdrawals, v_refunds,
+      v_payments, COALESCE(NEW.notes, '')
     );
 
   END IF;
