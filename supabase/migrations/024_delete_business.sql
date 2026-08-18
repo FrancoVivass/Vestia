@@ -14,6 +14,8 @@ begin
   end if;
 
   -- Eliminar en orden por dependencias de foreign keys
+  delete from notifications where business_id = p_business_id;
+  delete from cash_close_reports where business_id = p_business_id;
   delete from sale_item_allocations where sale_item_id in (
     select si.id from sale_items si join sales s on s.id = si.sale_id where s.business_id = p_business_id
   );
@@ -65,6 +67,9 @@ begin
   delete from expenses where business_id = p_business_id;
   delete from app_settings where business_id = p_business_id;
   delete from audit_logs where business_id = p_business_id;
+  delete from profile_permissions where profile_id in (
+    select id from profiles where business_id = p_business_id
+  );
   delete from profiles where business_id = p_business_id;
   delete from businesses where id = p_business_id;
 end;
