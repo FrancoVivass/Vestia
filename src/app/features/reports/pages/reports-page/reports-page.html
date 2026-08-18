@@ -1,5 +1,301 @@
-<section><header><div><p>REPORTES</p><h1>Rentabilidad y liquidaciones</h1><span>Ventas netas, costo, gastos, devoluciones y stock por dueño.</span></div><div class="actions"><button (click)="exportCsv()">Exportar Excel/CSV</button><button (click)="print()">Imprimir / PDF</button></div></header>
-<div class="filters"><label>Desde<input type="date" [(ngModel)]="from"></label><label>Hasta<input type="date" [(ngModel)]="to"></label><button (click)="load()" [disabled]="loading()">Actualizar reporte</button></div>
-<article class="settlement"><h2>Generar liquidación</h2><p>El cálculo se guarda como cierre histórico del período.</p><div class="filters"><select [(ngModel)]="ownerId">@for(owner of owners();track owner.id){<option [value]="owner.id">{{owner.first_name}} {{owner.last_name}}</option>}</select><button (click)="calculate()" [disabled]="loading()">Generar y guardar</button></div>@if(settlement();as result){<div class="stats"><div><span>Ventas netas</span><b>{{result.gross|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Costo</span><b>{{result.cost|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Gastos propios</span><b>{{result.expenses|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Ganancia estimada</span><b>{{result.profit|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Devoluciones</span><b>{{result.returns|currency:'ARS':'symbol-narrow'}}</b></div><div><span>Prendas vendidas</span><b>{{result.units}}</b></div><div><span>Stock actual</span><b>{{result.stock}}</b></div></div>}</article>
-<div class="table"><h2>Detalle diario por dueño</h2><table><thead><tr><th>Fecha</th><th>Dueño</th><th>Unidades netas</th><th>Ventas netas</th><th>Costo neto</th><th>Ganancia bruta</th></tr></thead><tbody>@for(row of rows();track row.owner_id+row.sale_day){<tr><td>{{row.sale_day|date:'dd/MM/yyyy'}}</td><td>{{row.owner_first_name}} {{row.owner_last_name}}</td><td>{{row.units}}</td><td>{{row.gross_sales|currency:'ARS':'symbol-narrow'}}</td><td>{{row.cost|currency:'ARS':'symbol-narrow'}}</td><td><b>{{row.estimated_profit|currency:'ARS':'symbol-narrow'}}</b></td></tr>}@empty{<tr><td colspan="6">No hay operaciones para el período.</td></tr>}</tbody></table></div>
-<div class="table"><h2>Liquidaciones guardadas</h2><table><thead><tr><th>Creada</th><th>Dueño</th><th>Período</th><th>Ventas</th><th>Costo</th><th>Gastos</th><th>Devoluciones</th><th>Neto estimado</th></tr></thead><tbody>@for(item of history();track item.id){<tr><td>{{item.created_at|date:'dd/MM/yyyy HH:mm'}}</td><td>{{item.owners.first_name}} {{item.owners.last_name}}</td><td>{{item.date_from|date:'dd/MM/yyyy'}} — {{item.date_to|date:'dd/MM/yyyy'}}</td><td>{{item.gross_sales|currency:'ARS':'symbol-narrow'}}</td><td>{{item.cost|currency:'ARS':'symbol-narrow'}}</td><td>{{item.expenses|currency:'ARS':'symbol-narrow'}}</td><td>{{item.returns_amount|currency:'ARS':'symbol-narrow'}}</td><td><b>{{item.net_amount|currency:'ARS':'symbol-narrow'}}</b></td></tr>}@empty{<tr><td colspan="8">Todavía no se generaron liquidaciones.</td></tr>}</tbody></table></div></section>
+<section class="reports-page">
+  <header>
+    <div>
+      <p>REPORTES</p>
+      <h1>Análisis del negocio</h1>
+      <span>Ventas, stock, caja y rendimiento en un solo lugar.</span>
+    </div>
+    <div class="actions">
+      <button (click)="exportCsv()">Exportar CSV</button>
+      <button (click)="print()">Imprimir / PDF</button>
+    </div>
+  </header>
+
+  <div class="filters">
+    <label>Desde<input type="date" [(ngModel)]="from"></label>
+    <label>Hasta<input type="date" [(ngModel)]="to"></label>
+    <button (click)="load()" [disabled]="loading()">Actualizar</button>
+  </div>
+
+  <!-- Tabs -->
+  <nav class="tabs">
+    <button [class.active]="activeTab() === 'resumen'" (click)="setTab('resumen')">Resumen</button>
+    <button [class.active]="activeTab() === 'ventas'" (click)="setTab('ventas')">Ventas</button>
+    <button [class.active]="activeTab() === 'productos'" (click)="setTab('productos')">Productos</button>
+    <button [class.active]="activeTab() === 'caja'" (click)="setTab('caja')">Caja</button>
+    <button [class.active]="activeTab() === 'liquidaciones'" (click)="setTab('liquidaciones')">Liquidaciones</button>
+  </nav>
+
+  <!-- ========== RESUMEN ========== -->
+  @if (activeTab() === 'resumen') {
+    @if (summary(); as s) {
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Ventas totales</span>
+          <b class="kpi-value">{{ s.total_sales | currency:'ARS':'symbol-narrow' }}</b>
+          <span class="kpi-sub">{{ s.sale_count }} ventas</span>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Ticket promedio</span>
+          <b class="kpi-value">{{ s.avg_ticket | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Unidades vendidas</span>
+          <b class="kpi-value">{{ s.total_units }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Margen de ganancia</span>
+          <b class="kpi-value" [class.positive]="profitMargin() > 0" [class.negative]="profitMargin() < 0">
+            {{ profitMargin() | number:'1.1-1' }}%
+          </b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Costo total</span>
+          <b class="kpi-value negative">{{ s.total_cost | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Gastos</span>
+          <b class="kpi-value negative">{{ s.total_expenses | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Devoluciones</span>
+          <b class="kpi-value negative">{{ s.total_returns | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Ganancia neta</span>
+          <b class="kpi-value" [class.positive]="(s.total_sales - s.total_cost - s.total_expenses) > 0" [class.negative]="(s.total_sales - s.total_cost - s.total_expenses) < 0">
+            {{ (s.total_sales - s.total_cost - s.total_expenses) | currency:'ARS':'symbol-narrow' }}
+          </b>
+        </div>
+      </div>
+    }
+
+    <!-- Gráfico de ventas por día -->
+    @if (salesByDay().length > 0) {
+      <article class="chart-card">
+        <h2>Ventas por día</h2>
+        <div class="bar-chart">
+          @for (day of salesByDay(); track day.sale_date) {
+            <div class="bar-col">
+              <div class="bar-tooltip">{{ day.amount | currency:'ARS':'symbol-narrow' }}</div>
+              <div class="bar" [style.height.%]="barHeight(day.amount)"></div>
+              <span class="bar-label">{{ day.sale_date | date:'dd' }}</span>
+            </div>
+          }
+        </div>
+      </article>
+    }
+
+    <!-- Alertas de stock -->
+    @if (stockAlerts().length > 0) {
+      <article class="alerts-card">
+        <h2>Alertas de stock</h2>
+        <div class="alerts-list">
+          @for (alert of stockAlerts(); track alert.sku) {
+            <div class="alert-row" [class.agotado]="alert.status === 'Agotado'">
+              <div>
+                <p class="alert-name">{{ alert.product_name }}</p>
+                <p class="alert-variant">{{ alert.variant_name }} · {{ alert.sku }}</p>
+              </div>
+              <div class="alert-right">
+                <span class="alert-stock">{{ alert.quantity }} u.</span>
+                <span class="alert-badge" [class.badge-danger]="alert.status === 'Agotado'" [class.badge-warning]="alert.status === 'Bajo'">
+                  {{ alert.status }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+    }
+  }
+
+  <!-- ========== VENTAS ========== -->
+  @if (activeTab() === 'ventas') {
+    <!-- Métodos de pago -->
+    @if (paymentMethods().length > 0) {
+      <article class="chart-card">
+        <h2>Ventas por método de pago</h2>
+        <div class="payment-grid">
+          @for (pm of paymentMethods(); track pm.method_name) {
+            <div class="payment-item">
+              <span class="payment-name">{{ pm.method_name }}</span>
+              <b class="payment-amount">{{ pm.amount | currency:'ARS':'symbol-narrow' }}</b>
+              <span class="payment-count">{{ pm.count }} cobros</span>
+            </div>
+          }
+        </div>
+      </article>
+    }
+
+    <!-- Detalle diario por dueño -->
+    <div class="table-card">
+      <h2>Detalle diario por dueño</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Dueño</th>
+              <th>Unidades</th>
+              <th>Ventas netas</th>
+              <th>Costo</th>
+              <th>Ganancia</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of rows(); track row.owner_id + row.sale_day) {
+              <tr>
+                <td>{{ row.sale_day | date:'dd/MM/yyyy' }}</td>
+                <td>{{ row.owner_first_name }} {{ row.owner_last_name }}</td>
+                <td>{{ row.units }}</td>
+                <td>{{ row.gross_sales | currency:'ARS':'symbol-narrow' }}</td>
+                <td>{{ row.cost | currency:'ARS':'symbol-narrow' }}</td>
+                <td><b>{{ row.estimated_profit | currency:'ARS':'symbol-narrow' }}</b></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="6">No hay operaciones para el período.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  <!-- ========== PRODUCTOS ========== -->
+  @if (activeTab() === 'productos') {
+    @if (topProducts().length > 0) {
+      <article class="chart-card">
+        <h2>Top productos más vendidos</h2>
+        <div class="products-list">
+          @for (p of topProducts(); track p.variant_name; let i = $index) {
+            <div class="product-row">
+              <span class="product-rank">#{{ i + 1 }}</span>
+              <div class="product-info">
+                <p class="product-name">{{ p.product_name }}</p>
+                <p class="product-variant">{{ p.variant_name }}</p>
+              </div>
+              <div class="product-stats">
+                <b>{{ p.total_quantity }} u.</b>
+                <span>{{ p.total_revenue | currency:'ARS':'symbol-narrow' }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      </article>
+    } @else {
+      <p class="empty-msg">No hay datos de ventas para el período seleccionado.</p>
+    }
+  }
+
+  <!-- ========== CAJA ========== -->
+  @if (activeTab() === 'caja') {
+    @if (cashSumm(); as c) {
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <span class="kpi-label">Aperturas de caja</span>
+          <b class="kpi-value">{{ c.total_openings }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Total contado en cierres</span>
+          <b class="kpi-value">{{ c.total_sales | currency:'ARS':'symbol-narrow' }}</b>
+        </div>
+        <div class="kpi-card">
+          <span class="kpi-label">Diferencias totales</span>
+          <b class="kpi-value" [class.negative]="c.total_differences > 0" [class.positive]="c.total_differences === 0">
+            {{ c.total_differences | currency:'ARS':'symbol-narrow' }}
+          </b>
+        </div>
+      </div>
+    }
+
+    @if (summary(); as s) {
+      <article class="chart-card">
+        <h2>Composición de gastos</h2>
+        <div class="expense-grid">
+          <div class="expense-item">
+            <span>Costo de mercadería</span>
+            <b>{{ s.total_cost | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+          <div class="expense-item">
+            <span>Gastos operativos</span>
+            <b>{{ s.total_expenses | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+          <div class="expense-item">
+            <span>Devoluciones</span>
+            <b>{{ s.total_returns | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+          <div class="expense-divider"></div>
+          <div class="expense-item total">
+            <span>Total salidas</span>
+            <b>{{ (s.total_cost + s.total_expenses + s.total_returns) | currency:'ARS':'symbol-narrow' }}</b>
+          </div>
+        </div>
+      </article>
+    }
+  }
+
+  <!-- ========== LIQUIDACIONES ========== -->
+  @if (activeTab() === 'liquidaciones') {
+    <article class="settlement-card">
+      <h2>Generar liquidación</h2>
+      <p class="settlement-desc">El cálculo se guarda como cierre histórico del período.</p>
+      <div class="settlement-form">
+        <select [(ngModel)]="ownerId">
+          @for (owner of owners(); track owner.id) {
+            <option [value]="owner.id">{{ owner.first_name }} {{ owner.last_name }}</option>
+          }
+        </select>
+        <button (click)="calculate()" [disabled]="loading()">Generar y guardar</button>
+      </div>
+
+      @if (settlement(); as result) {
+        <div class="kpi-grid">
+          <div class="kpi-card"><span class="kpi-label">Ventas netas</span><b class="kpi-value">{{ result.gross | currency:'ARS':'symbol-narrow' }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Costo</span><b class="kpi-value">{{ result.cost | currency:'ARS':'symbol-narrow' }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Gastos</span><b class="kpi-value">{{ result.expenses | currency:'ARS':'symbol-narrow' }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Ganancia</span><b class="kpi-value">{{ result.profit | currency:'ARS':'symbol-narrow' }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Devoluciones</span><b class="kpi-value">{{ result.returns | currency:'ARS':'symbol-narrow' }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Prendas</span><b class="kpi-value">{{ result.units }}</b></div>
+          <div class="kpi-card"><span class="kpi-label">Stock actual</span><b class="kpi-value">{{ result.stock }}</b></div>
+        </div>
+      }
+    </article>
+
+    <div class="table-card">
+      <h2>Liquidaciones guardadas</h2>
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Creada</th>
+              <th>Dueño</th>
+              <th>Período</th>
+              <th>Ventas</th>
+              <th>Costo</th>
+              <th>Gastos</th>
+              <th>Devoluciones</th>
+              <th>Neto</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of history(); track item.id) {
+              <tr>
+                <td>{{ item.created_at | date:'dd/MM/yyyy HH:mm' }}</td>
+                <td>{{ item.owners.first_name }} {{ item.owners.last_name }}</td>
+                <td>{{ item.date_from | date:'dd/MM' }} — {{ item.date_to | date:'dd/MM' }}</td>
+                <td>{{ item.gross_sales | currency:'ARS':'symbol-narrow' }}</td>
+                <td>{{ item.cost | currency:'ARS':'symbol-narrow' }}</td>
+                <td>{{ item.expenses | currency:'ARS':'symbol-narrow' }}</td>
+                <td>{{ item.returns_amount | currency:'ARS':'symbol-narrow' }}</td>
+                <td><b>{{ item.net_amount | currency:'ARS':'symbol-narrow' }}</b></td>
+              </tr>
+            } @empty {
+              <tr><td colspan="8">Todavía no se generaron liquidaciones.</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</section>
