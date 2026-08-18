@@ -1,95 +1,73 @@
 <app-modal
   [open]="open"
-  [title]="user ? 'Editar usuario' : 'Crear usuario'"
-  [description]="'Definí rol, estado y permisos del usuario dentro del comercio.'"
+  [title]="user ? 'Editar usuario' : 'Nuevo usuario'"
+  [description]="'Definí el rol, estado y permisos dentro del comercio.'"
   [loading]="loading"
   [confirmLabel]="user ? 'Guardar cambios' : 'Crear usuario'"
   cancelLabel="Cancelar"
   (closed)="closed.emit()"
   (confirmed)="onSubmit()"
 >
-  <div class="grid gap-4 md:grid-cols-2">
-    <div>
-      <label class="mb-2 block text-sm font-medium">Nombre completo</label>
-      <input
-        type="text"
-        [formControl]="form.controls.fullName"
-        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
-        placeholder="Nombre y apellido"
-      />
+  <!-- Campos principales -->
+  <div class="modal-fields">
+    <div class="modal-field">
+      <label>Nombre completo</label>
+      <input type="text" [formControl]="form.controls.fullName" placeholder="Nombre y apellido" />
     </div>
-
-    <div>
-      <label class="mb-2 block text-sm font-medium">Email</label>
-      <input
-        type="email"
-        [formControl]="form.controls.email"
-        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
-        placeholder="usuario@comercio.com"
-      />
+    <div class="modal-field">
+      <label>Email</label>
+      <input type="email" [formControl]="form.controls.email" placeholder="usuario@comercio.com" />
     </div>
-
-    <div>
-      <label class="mb-2 block text-sm font-medium">Rol</label>
-      <select
-        [formControl]="form.controls.role"
-        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
-        (change)="onRoleChange(($any($event.target)).value)"
-      >
+    <div class="modal-field">
+      <label>Rol</label>
+      <select [formControl]="form.controls.role" (change)="onRoleChange(($any($event.target)).value)">
         @for (role of roles(); track role.code) {
           <option [value]="role.code">{{ role.name }}</option>
         }
       </select>
     </div>
-
     @if (!user) {
-      <div>
-        <label class="mb-2 block text-sm font-medium">Contraseña inicial</label>
-        <input type="password" autocomplete="new-password" [formControl]="form.controls.password" minlength="8" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]" placeholder="Mínimo 8 caracteres" />
-        @if (form.controls.password.invalid && form.controls.password.touched) {<p class="mt-2 text-sm text-[var(--color-danger)]">Ingresá al menos 8 caracteres.</p>}
+      <div class="modal-field">
+        <label>Contraseña inicial</label>
+        <input type="password" autocomplete="new-password" [formControl]="form.controls.password" minlength="8" placeholder="Mínimo 8 caracteres" />
+        @if (form.controls.password.invalid && form.controls.password.touched) {
+          <span class="error-text">Mínimo 8 caracteres.</span>
+        }
       </div>
     }
-
-    <div>
-      <label class="mb-2 block text-sm font-medium">Estado</label>
-      <select
-        [formControl]="form.controls.status"
-        class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3 outline-none transition focus:border-[var(--color-primary)]"
-      >
+    <div class="modal-field">
+      <label>Estado</label>
+      <select [formControl]="form.controls.status">
         <option value="active">Activo</option>
         <option value="inactive">Inactivo</option>
       </select>
     </div>
     @if (form.controls.role.value === 'OWNER') {
-      <div>
-        <label class="mb-2 block text-sm font-medium">Dueño de mercadería asociado</label>
-        <select [formControl]="form.controls.ownerId" class="w-full rounded-2xl border border-[var(--color-border)] bg-white px-4 py-3">
-          <option value="">Sin asociación específica</option>
-          @for (owner of owners(); track owner.id) {<option [value]="owner.id">{{ owner.first_name }} {{ owner.last_name }}</option>}
+      <div class="modal-field">
+        <label>Dueño asociado</label>
+        <select [formControl]="form.controls.ownerId">
+          <option value="">Sin asociación</option>
+          @for (owner of owners(); track owner.id) {
+            <option [value]="owner.id">{{ owner.first_name }} {{ owner.last_name }}</option>
+          }
         </select>
       </div>
     }
   </div>
 
-  <div class="mt-5 rounded-[1.5rem] border border-[var(--color-border)] bg-white p-4">
-    <p class="text-sm font-medium">Permisos</p>
-    <div class="mt-4 grid gap-4 md:grid-cols-2">
+  <!-- Permisos -->
+  <div class="perm-section">
+    <p class="perm-section-title">Permisos del usuario</p>
+    <div class="perm-group">
       @for (group of groupKeys(); track group) {
-        <div class="rounded-[1.25rem] border border-[var(--color-border)] p-4">
-          <p class="text-sm font-semibold">{{ group }}</p>
-          <div class="mt-3 space-y-2">
-            @for (permission of groupedPermissions()[group]; track permission.code) {
-              <label class="flex items-center gap-3 text-sm">
-                <input
-                  type="checkbox"
-                  class="h-4 w-4 rounded accent-[var(--color-primary)]"
-                  [checked]="hasPermission(permission.code)"
-                  (change)="togglePermission(permission.code, ($any($event.target)).checked)"
-                />
-                <span>{{ permission.name }}</span>
-              </label>
-            }
-          </div>
+        <div class="perm-card">
+          <p class="perm-card-name">{{ group }}</p>
+          @for (permission of groupedPermissions()[group]; track permission.code) {
+            <label class="perm-option">
+              <input type="checkbox" [checked]="hasPermission(permission.code)" (change)="togglePermission(permission.code, ($any($event.target)).checked)" />
+              {{ permission.name }}
+            </label>
+          }
         </div>
       }
     </div>
