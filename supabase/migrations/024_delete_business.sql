@@ -21,6 +21,7 @@ begin
   );
   delete from audit_logs where business_id = p_business_id;
   delete from owner_settlements where business_id = p_business_id;
+  delete from inventory_lots where business_id = p_business_id;
   delete from owners where business_id = p_business_id;
   delete from expenses where business_id = p_business_id;
   delete from physical_inventory_items where inventory_id in (
@@ -46,7 +47,6 @@ begin
   delete from cash_sessions where business_id = p_business_id;
   delete from cash_registers where business_id = p_business_id;
   delete from stock_movements where business_id = p_business_id;
-  delete from inventory_lots where business_id = p_business_id;
   delete from inventory_balances where business_id = p_business_id;
   delete from purchase_items where purchase_id in (
     select id from purchases where business_id = p_business_id
