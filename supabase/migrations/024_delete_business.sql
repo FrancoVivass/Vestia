@@ -22,6 +22,9 @@ begin
   delete from audit_logs where business_id = p_business_id;
   delete from owner_settlements where business_id = p_business_id;
   delete from stock_movements where business_id = p_business_id;
+  delete from sale_item_allocations where sale_item_id in (
+    select si.id from sale_items si join sales s on s.id = si.sale_id where s.business_id = p_business_id
+  );
   delete from inventory_lots where business_id = p_business_id;
   delete from owners where business_id = p_business_id;
   delete from expenses where business_id = p_business_id;
@@ -34,9 +37,6 @@ begin
     select id from returns where business_id = p_business_id
   );
   delete from returns where business_id = p_business_id;
-  delete from sale_item_allocations where sale_item_id in (
-    select si.id from sale_items si join sales s on s.id = si.sale_id where s.business_id = p_business_id
-  );
   delete from sale_payments where sale_id in (
     select id from sales where business_id = p_business_id
   );
