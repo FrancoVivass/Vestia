@@ -36,6 +36,8 @@
 }
 .fab-cash:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(0,0,0,.25); }
 .fab-cash svg { stroke: #fff; width: 18px; height: 18px; }
+.fab-cash-close { background: #dc2626; }
+.fab-cash-close:hover { background: #b91c1c; }
 @keyframes fabPulse {
   0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,.2); }
   50% { box-shadow: 0 6px 20px rgba(0,0,0,.2), 0 0 0 8px rgba(var(--color-primary-rgb, 99,102,241), .15); }
