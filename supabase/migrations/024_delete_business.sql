@@ -20,7 +20,6 @@ begin
   delete from profile_permissions where profile_id in (
     select id from profiles where business_id = p_business_id
   );
-  delete from audit_logs where business_id = p_business_id;
   delete from owner_settlements where business_id = p_business_id;
   delete from stock_movements where business_id = p_business_id;
   delete from expenses where business_id = p_business_id;
@@ -85,7 +84,8 @@ begin
   delete from suppliers where business_id = p_business_id;
   delete from owners where business_id = p_business_id;
 
-  -- Round 8: todo limpio
+  -- Round 8: todo limpio, audit_logs al final por triggers
+  delete from audit_logs where business_id = p_business_id;
   delete from businesses where id = p_business_id;
 end;
 $$;
