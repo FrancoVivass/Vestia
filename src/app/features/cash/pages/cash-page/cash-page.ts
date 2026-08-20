@@ -23,6 +23,7 @@ export class CashPageComponent implements OnInit {
   readonly loading = signal(false);
   readonly showHistory = signal(false);
   readonly showConfirmClose = signal(false);
+  readonly showOpenModal = signal(false);
 
   registerId = '';
   opening = 0;
@@ -35,6 +36,10 @@ export class CashPageComponent implements OnInit {
     const counted = Number(this.counted);
     return counted - expected;
   });
+
+  readonly reportsWithShortage = computed(() => this.reports().filter(r => r.difference < 0).length);
+  readonly reportsWithSurplus = computed(() => this.reports().filter(r => r.difference > 0).length);
+  readonly totalDifference = computed(() => this.reports().reduce((s, r) => s + r.difference, 0));
 
   async ngOnInit(): Promise<void> {
     await this.load();

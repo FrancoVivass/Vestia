@@ -65,6 +65,44 @@
     </div>
   }
 
+  <!-- Botón flotante Abrir caja (solo si no hay caja abierta y no es platform owner) -->
+  @if (!hasOpenCash() && !isPlatformOwner() && !showCashPrompt()) {
+    <button class="fab-cash" (click)="openOpenCashModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="20" height="20"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+      Abrir caja
+    </button>
+  }
+
+  <!-- Modal de apertura de caja -->
+  @if (showOpenCashModal()) {
+    <div class="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 backdrop-blur-sm" (click)="showOpenCashModal.set(false)">
+      <div class="open-modal mx-4 w-full max-w-sm rounded-3xl border border-[var(--color-border)] bg-white p-8 text-center shadow-2xl" (click)="$event.stopPropagation()">
+        <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-ede9fe">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/><line x1="12" y1="4" x2="12" y2="16"/></svg>
+        </div>
+        <h2 class="text-lg font-semibold text-[var(--color-text)]">¿Abrir caja?</h2>
+        <p class="mt-2 text-sm text-[var(--color-muted)]">Elegí la caja y el monto inicial.</p>
+
+        <div class="mt-5 text-left">
+          <label class="mb-1 block text-xs font-semibold text-[var(--color-muted)]">Caja</label>
+          <select [(ngModel)]="registerId" class="mb-3 w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)]">
+            @for (r of registers(); track r.id) {
+              <option [value]="r.id">{{ r.name }}</option>
+            }
+          </select>
+
+          <label class="mb-1 block text-xs font-semibold text-[var(--color-muted)]">Monto inicial</label>
+          <input type="number" min="0" [(ngModel)]="opening" placeholder="0" class="w-full rounded-xl border border-[var(--color-border)] bg-[var(--color-background)] px-4 py-2.5 text-sm text-[var(--color-text)]" />
+        </div>
+
+        <div class="mt-6 flex gap-3">
+          <button class="flex-1 rounded-xl border border-[var(--color-border)] bg-white px-4 py-2.5 text-sm font-medium text-[var(--color-muted)] transition hover:border-[var(--color-primary)] hover:text-[var(--color-text)]" (click)="showOpenCashModal.set(false)">Cancelar</button>
+          <button class="flex-1 rounded-xl bg-[var(--color-primary)] px-4 py-2.5 text-sm font-semibold text-white transition hover:opacity-90" [disabled]="!registerId" (click)="confirmOpenCash()">Abrir</button>
+        </div>
+      </div>
+    </div>
+  }
+
   <div class="floating-actions" aria-label="Acciones rápidas">
     <button type="button" class="floating-button theme-button" (click)="theme.toggle()" [attr.aria-label]="theme.dark()?'Activar modo claro':'Activar modo oscuro'" [title]="theme.dark()?'Modo claro':'Modo oscuro'">
       @if(theme.dark()){<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.93 4.93l1.42 1.42M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.42-1.42M17.66 6.34l1.41-1.41"></path></svg>}@else{<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8Z"></path></svg>}

@@ -12,3 +12,36 @@
   from { opacity: 0; transform: translateY(24px) scale(0.96); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+
+/* ─── Botón flotante abrir caja ─── */
+.fab-cash {
+  position: fixed;
+  bottom: 9rem;
+  right: 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: .75rem 1.3rem;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-size: .82rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 6px 20px rgba(0,0,0,.2);
+  z-index: 35;
+  transition: transform .15s, box-shadow .15s;
+  animation: fabPulse 2.5s ease-in-out infinite;
+}
+.fab-cash:hover { transform: scale(1.05); box-shadow: 0 8px 28px rgba(0,0,0,.25); }
+.fab-cash svg { stroke: #fff; width: 18px; height: 18px; }
+@keyframes fabPulse {
+  0%, 100% { box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+  50% { box-shadow: 0 6px 20px rgba(0,0,0,.2), 0 0 0 8px rgba(var(--color-primary-rgb, 99,102,241), .15); }
+}
+.open-modal { animation: promptSlideUp 0.25s ease; }
+
+@media (max-width: 640px) {
+  .fab-cash { bottom: 8.5rem; right: .8rem; padding: .65rem 1rem; font-size: .78rem; }
+}
