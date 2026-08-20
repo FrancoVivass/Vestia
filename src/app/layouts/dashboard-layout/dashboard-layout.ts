@@ -11,11 +11,10 @@ import { ToastService } from '../../core/services/toast.service';
 import { HeaderComponent } from '../../shared/components/header/header';
 import { SidebarComponent } from '../../shared/components/sidebar/sidebar';
 import { SuspendedPageComponent } from '../../features/auth/pages/suspended-page/suspended-page';
-import { CurrencyPipe } from '@angular/common';
 
 @Component({
   selector: 'app-dashboard-layout',
-  imports: [FormsModule, CurrencyPipe, RouterOutlet, HeaderComponent, SidebarComponent, SuspendedPageComponent],
+  imports: [FormsModule, RouterOutlet, HeaderComponent, SidebarComponent, SuspendedPageComponent],
   templateUrl: './dashboard-layout.html',
   styleUrl: './dashboard-layout.css',
 })
@@ -27,7 +26,7 @@ export class DashboardLayoutComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly data = inject(DataAccessService);
   private readonly toast = inject(ToastService);
-  private readonly router = inject(Router);
+  protected readonly router = inject(Router);
 
   readonly isSuspended = computed(() => {
     const business = this.businessContext.activeBusiness();
