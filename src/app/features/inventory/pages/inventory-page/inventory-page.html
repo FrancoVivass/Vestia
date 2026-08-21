@@ -1,1 +1,136 @@
-<section class="inventory"><header><div><p>INVENTARIO</p><h1>Stock por propietario</h1><span>Existencias derivadas de lotes y movimientos.</span></div><form (ngSubmit)="load()"><input name="search" [(ngModel)]="search" placeholder="SKU o código de barras"><button>Buscar</button></form></header><div class="summary"><article><b>{{rows().length}}</b><span>Combinaciones</span></article><article><b>{{total()}}</b><span>Unidades totales</span></article></div><div class="table">@if(loading()){<p>Cargando inventario…</p>}@else{<table><thead><tr><th>Producto</th><th>Variante</th><th>SKU / Barcode</th><th>Propietario</th><th>Stock</th><th>Estado</th></tr></thead><tbody>@for(row of rows();track row.variantId+row.ownerId){<tr><td><strong>{{row.productName}}</strong></td><td>{{row.color||'—'}} / {{row.size||'—'}}</td><td>{{row.sku}}<small>{{row.barcode}}</small></td><td>{{row.ownerName}}</td><td class="qty">{{row.quantity}}</td><td><span [class.warn]="state(row)==='STOCK BAJO'" [class.danger]="state(row)==='SIN STOCK'">{{state(row)}}</span></td></tr>}</tbody></table>}</div></section>
+<section class="inventory">
+  <header>
+    <div>
+      <p>INVENTARIO</p>
+      <h1>Stock por propietario</h1>
+      <span>Existencias derivadas de lotes y movimientos.</span>
+    </div>
+    <form (ngSubmit)="load()">
+      <input name="search" [(ngModel)]="search" placeholder="SKU o código de barras">
+      <button>Buscar</button>
+    </form>
+  </header>
+
+  <!-- Owner filter tabs -->
+  <div class="owner-tabs">
+    <button class="owner-tab" [class.active]="ownerFilter() === ''" (click)="ownerFilter.set('')">
+      Todos
+      <span class="tab-count">{{ rows().length }}</span>
+    </button>
+    @for (owner of owners(); track owner.id) {
+      <button class="owner-tab" [class.active]="ownerFilter() === owner.id" (click)="ownerFilter.set(owner.id)">
+        <span class="owner-initial">{{ ownerInitial(owner.name) }}</span>
+        {{ owner.name }}
+        <span class="tab-count">{{ owner.total }}</span>
+      </button>
+    }
+  </div>
+
+  <!-- Summary -->
+  <div class="summary">
+    <article>
+      <b>{{ filteredRows().length }}</b>
+      <span>Combinaciones</span>
+    </article>
+    <article>
+      <b>{{ total() }}</b>
+      <span>Unidades totales</span>
+    </article>
+    @if (ownerFilter()) {
+      <article>
+        <b>{{ owners().length }}</b>
+        <span>Propietarios</span>
+      </article>
+    }
+  </div>
+
+  <!-- Grouped by owner -->
+  @if (ownerFilter()) {
+    @for (group of groupedByOwner(); track group.name) {
+      <div class="owner-group">
+        <div class="owner-group-header">
+          <div class="owner-avatar">{{ ownerInitial(group.name) }}</div>
+          <div>
+            <h3>{{ group.name }}</h3>
+            <span>{{ group.rows.length }} variantes · {{ group.total }} unidades</span>
+          </div>
+        </div>
+        <div class="table">
+          <table>
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Variante</th>
+                <th>SKU / Barcode</th>
+                <th>Stock</th>
+                <th>Precio</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of group.rows; track row.variantId + row.ownerId) {
+                <tr>
+                  <td><strong>{{ row.productName }}</strong></td>
+                  <td>{{ row.color || '—' }} / {{ row.size || '—' }}</td>
+                  <td>{{ row.sku }}<small>{{ row.barcode }}</small></td>
+                  <td class="qty">{{ row.quantity }}</td>
+                  <td>{{ row.price | currency:'ARS':'symbol-narrow' }}</td>
+                  <td>
+                    <span [class.warn]="state(row) === 'STOCK BAJO'" [class.danger]="state(row) === 'SIN STOCK'">
+                      {{ state(row) }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  } @else {
+    <!-- Flat table when no owner filter -->
+    <div class="table">
+      @if (loading()) {
+        <p class="loading-msg">Cargando inventario...</p>
+      } @else {
+        <table>
+          <thead>
+            <tr>
+              <th>Producto</th>
+              <th>Variante</th>
+              <th>SKU / Barcode</th>
+              <th>Propietario</th>
+              <th>Stock</th>
+              <th>Precio</th>
+              <th>Estado</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of filteredRows(); track row.variantId + row.ownerId) {
+              <tr>
+                <td><strong>{{ row.productName }}</strong></td>
+                <td>{{ row.color || '—' }} / {{ row.size || '—' }}</td>
+                <td>{{ row.sku }}<small>{{ row.barcode }}</small></td>
+                <td>
+                  <span class="owner-badge">
+                    <span class="owner-badge-initial">{{ ownerInitial(row.ownerName) }}</span>
+                    {{ row.ownerName }}
+                  </span>
+                </td>
+                <td class="qty">{{ row.quantity }}</td>
+                <td>{{ row.price | currency:'ARS':'symbol-narrow' }}</td>
+                <td>
+                  <span [class.warn]="state(row) === 'STOCK BAJO'" [class.danger]="state(row) === 'SIN STOCK'">
+                    {{ state(row) }}
+                  </span>
+                </td>
+              </tr>
+            } @empty {
+              <tr><td colspan="7" class="empty-row">No se encontraron resultados.</td></tr>
+            }
+          </tbody>
+        </table>
+      }
+    </div>
+  }
+</section>

@@ -29,7 +29,12 @@
     @if (selected) {
       @for (item of [].constructor(quantity); track $index) {
         <article>
-          <strong>{{selected.products.name}}</strong>
+          <div class="label-top">
+            @if (selectedOwner) {
+              <span class="label-initial">{{ selectedOwner.owners.last_name.charAt(0) || selectedOwner.owners.first_name.charAt(0) }}</span>
+            }
+            <strong>{{selected.products.name}}</strong>
+          </div>
           <span>{{selected.colors?.name || '—'}} / {{selected.sizes?.name || '—'}} · {{selected.sku}}</span>
           @if (selectedOwner) {<small>{{selectedOwner.owners.first_name}} {{selectedOwner.owners.last_name}}</small>}
           @if (showPrice()) {<b>$ {{selected.price}}</b>}

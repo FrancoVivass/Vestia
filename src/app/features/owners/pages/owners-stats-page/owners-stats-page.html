@@ -1,0 +1,133 @@
+<section class="owners-stats">
+  <header>
+    <div>
+      <p>DUEÑOS</p>
+      <h1>Estadísticas por propietario</h1>
+      <span>Ventas y ganancias por dueño de productos.</span>
+    </div>
+    <div class="period-tabs">
+      <button [class.active]="period() === 'week'" (click)="setPeriod('week')">Semana</button>
+      <button [class.active]="period() === 'month'" (click)="setPeriod('month')">Mes</button>
+      <button [class.active]="period() === 'quarter'" (click)="setPeriod('quarter')">Trimestre</button>
+    </div>
+  </header>
+
+  <div class="summary">
+    <article>
+      <div class="kpi-icon sales">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+      </div>
+      <b>{{ totalSales() | currency:'ARS':'symbol-narrow':'1.0-0' }}</b>
+      <span>Ventas totales</span>
+    </article>
+    <article>
+      <div class="kpi-icon profit">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <b>{{ totalProfit() | currency:'ARS':'symbol-narrow':'1.0-0' }}</b>
+      <span>Ganancia total</span>
+    </article>
+    <article>
+      <div class="kpi-icon units">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+      </div>
+      <b>{{ totalUnits() }}</b>
+      <span>Unidades vendidas</span>
+    </article>
+    <article>
+      <div class="kpi-icon count">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+      </div>
+      <b>{{ ownerStats().length }}</b>
+      <span>Dueños activos</span>
+    </article>
+  </div>
+
+  @if (loading()) {
+    <p class="loading-msg">Cargando estadísticas...</p>
+  } @else {
+    <!-- Daily chart -->
+    @if (dailyData().length > 0) {
+      <div class="chart-card">
+        <h2>Ventas por día</h2>
+        <div class="chart-scroll">
+          <div class="chart-bars">
+            @for (day of dailyData(); track day.date) {
+              <div class="chart-col">
+                <div class="chart-value">{{ day.owners.reduce((s, o) => s + o[1], 0) | number:'1.0-0' }}</div>
+                <div class="chart-bar-wrap">
+                  @for (owner of day.owners; track owner[0]) {
+                    <div class="chart-segment" [style.height.px]="(owner[1] / (totalSales() || 1)) * 120"
+                         [title]="owner[0] + ': $' + (owner[1] | number:'1.0-0')"></div>
+                  }
+                </div>
+                <div class="chart-label">{{ day.date.slice(5) }}</div>
+              </div>
+            }
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Owner cards -->
+    <div class="owner-cards">
+      @for (stat of ownerStats(); track stat.id; let i = $index) {
+        <div class="owner-card" [class.rank-1]="i === 0" [class.rank-2]="i === 1" [class.rank-3]="i === 2">
+          <div class="card-header">
+            <div class="avatar">{{ stat.initial }}</div>
+            <div>
+              <h3>{{ stat.name }}</h3>
+              @if (i < 3) {
+                <span class="rank-badge">
+                  @switch (i) {
+                    @case (0) { 🥇 }
+                    @case (1) { 🥈 }
+                    @case (2) { 🥉 }
+                  }
+                </span>
+              }
+            </div>
+          </div>
+          <div class="card-stats">
+            <div class="stat-row">
+              <span class="stat-label">Ventas</span>
+              <span class="stat-value">{{ stat.totalSales | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Costo</span>
+              <span class="stat-value cost">{{ stat.totalCost | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="stat-row highlight">
+              <span class="stat-label">Ganancia</span>
+              <span class="stat-value profit">{{ stat.totalProfit | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Unidades</span>
+              <span class="stat-value">{{ stat.totalUnits }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Promedio diario</span>
+              <span class="stat-value">{{ stat.avgDaily | currency:'ARS':'symbol-narrow':'1.0-0' }}</span>
+            </div>
+            <div class="stat-row">
+              <span class="stat-label">Margen</span>
+              <span class="stat-value" [class.negative]="profitPercent(stat.totalProfit, stat.totalSales) < 0">
+                {{ profitPercent(stat.totalProfit, stat.totalSales) }}%
+              </span>
+            </div>
+          </div>
+          <div class="card-bar">
+            <div class="card-bar-fill" [style.width.%]="stat.totalSales > 0 ? (stat.totalProfit / stat.totalSales) * 100 : 0"
+                 [class.negative]="profitPercent(stat.totalProfit, stat.totalSales) < 0"></div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (ownerStats().length === 0) {
+      <div class="empty-state">
+        <p>No hay datos de ventas para este período.</p>
+      </div>
+    }
+  }
+</section>
