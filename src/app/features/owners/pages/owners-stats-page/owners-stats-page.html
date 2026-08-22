@@ -3,9 +3,10 @@
     <div>
       <p>DUEÑOS</p>
       <h1>Estadísticas por propietario</h1>
-      <span>Ventas y ganancias por dueño de productos.</span>
+      <span>Ganancias y ventas por dueño de productos.</span>
     </div>
     <div class="period-tabs">
+      <button [class.active]="period() === 'day'" (click)="setPeriod('day')">Día</button>
       <button [class.active]="period() === 'week'" (click)="setPeriod('week')">Semana</button>
       <button [class.active]="period() === 'month'" (click)="setPeriod('month')">Mes</button>
       <button [class.active]="period() === 'quarter'" (click)="setPeriod('quarter')">Trimestre</button>
@@ -29,7 +30,7 @@
     </article>
     <article>
       <div class="kpi-icon units">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2-2v16"/></svg>
       </div>
       <b>{{ totalUnits() }}</b>
       <span>Unidades vendidas</span>
@@ -46,30 +47,78 @@
   @if (loading()) {
     <p class="loading-msg">Cargando estadísticas...</p>
   } @else {
-    <!-- Daily chart -->
-    @if (dailyData().length > 0) {
-      <div class="chart-card">
-        <h2>Ventas por día</h2>
-        <div class="chart-scroll">
-          <div class="chart-bars">
-            @for (day of dailyData(); track day.date) {
-              <div class="chart-col">
-                <div class="chart-value">{{ day.owners.reduce((s, o) => s + o[1], 0) | number:'1.0-0' }}</div>
-                <div class="chart-bar-wrap">
-                  @for (owner of day.owners; track owner[0]) {
-                    <div class="chart-segment" [style.height.px]="(owner[1] / (totalSales() || 1)) * 120"
-                         [title]="owner[0] + ': $' + (owner[1] | number:'1.0-0')"></div>
+    <!-- ─── TIME BREAKDOWN ─── -->
+    @if (timeSlices().length > 0) {
+      <div class="breakdown-card">
+        <h2>Ganancia por período</h2>
+        <div class="breakdown-scroll">
+          <div class="breakdown-grid">
+            @for (slice of timeSlices(); track slice.dateKey) {
+              <div class="slice-col">
+                <div class="slice-profit" [class.negative]="slice.totalProfit < 0">
+                  {{ slice.totalProfit | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                </div>
+                <div class="slice-bars">
+                  @for (o of slice.owners; track o.id) {
+                    <div class="slice-bar-wrap" [title]="o.name + ': $' + (o.profit | number:'1.0-0')">
+                      <div class="slice-bar" [style.height.%]="maxSliceProfit() > 0 ? (Math.abs(o.profit) / maxSliceProfit()) * 100 : 0"
+                           [class.negative]="o.profit < 0"></div>
+                    </div>
                   }
                 </div>
-                <div class="chart-label">{{ day.date.slice(5) }}</div>
+                <div class="slice-label">{{ slice.label }}</div>
               </div>
             }
           </div>
         </div>
+
+        <!-- Table below chart -->
+        <div class="breakdown-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Período</th>
+                @for (stat of ownerStats(); track stat.id) {
+                  <th>
+                    <span class="th-owner">
+                      <span class="th-initial">{{ stat.initial }}</span>
+                      {{ stat.name }}
+                    </span>
+                  </th>
+                }
+                <th class="th-total">Total</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (slice of timeSlices(); track slice.dateKey) {
+                <tr>
+                  <td class="td-label">{{ slice.label }}</td>
+                  @for (stat of ownerStats(); track stat.id) {
+                    <td>
+                      @if (getOwnerSlice(slice, stat.id); as o) {
+                        <span class="slice-amount" [class.negative]="o.profit < 0">
+                          {{ o.profit | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                        </span>
+                        <span class="slice-units">{{ o.units }} u.</span>
+                      } @else {
+                        <span class="slice-empty">—</span>
+                      }
+                    </td>
+                  }
+                  <td class="td-total">
+                    <span class="slice-amount" [class.negative]="slice.totalProfit < 0">
+                      {{ slice.totalProfit | currency:'ARS':'symbol-narrow':'1.0-0' }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
       </div>
     }
 
-    <!-- Owner cards -->
+    <!-- ─── OWNER CARDS ─── -->
     <div class="owner-cards">
       @for (stat of ownerStats(); track stat.id; let i = $index) {
         <div class="owner-card" [class.rank-1]="i === 0" [class.rank-2]="i === 1" [class.rank-3]="i === 2">

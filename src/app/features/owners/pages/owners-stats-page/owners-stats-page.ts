@@ -4,7 +4,7 @@ import { ReportService, OwnerSalesRow } from '../../../../core/services/report.s
 import { DataAccessService } from '../../../../core/services/data-access.service';
 import { ToastService } from '../../../../core/services/toast.service';
 
-type Period = 'week' | 'month' | 'quarter';
+type Period = 'day' | 'week' | 'month' | 'quarter';
 
 interface OwnerStats {
   id: string;
@@ -18,6 +18,14 @@ interface OwnerStats {
   days: number;
 }
 
+interface TimeSlice {
+  label: string;
+  dateKey: string;
+  owners: { id: string; name: string; initial: string; sales: number; profit: number; units: number }[];
+  totalProfit: number;
+  totalSales: number;
+}
+
 @Component({
   selector: 'app-owners-stats-page',
   imports: [CurrencyPipe, DecimalPipe],
@@ -29,6 +37,8 @@ export class OwnersStatsPageComponent implements OnInit {
   private readonly data = inject(DataAccessService);
   private readonly toast = inject(ToastService);
 
+  readonly Math = Math;
+
   readonly loading = signal(false);
   readonly period = signal<Period>('month');
   readonly ownerSales = signal<OwnerSalesRow[]>([]);
@@ -39,7 +49,9 @@ export class OwnersStatsPageComponent implements OnInit {
     const to = now.toISOString().slice(0, 10);
     let from: string;
     const p = this.period();
-    if (p === 'week') {
+    if (p === 'day') {
+      from = to;
+    } else if (p === 'week') {
       const d = new Date(now);
       d.setDate(d.getDate() - 7);
       from = d.toISOString().slice(0, 10);
@@ -83,7 +95,6 @@ export class OwnersStatsPageComponent implements OnInit {
 
     const range = this.dateRange();
     const daysDiff = Math.max(1, Math.ceil((new Date(range.to).getTime() - new Date(range.from).getTime()) / 86400000));
-
     for (const stats of map.values()) {
       stats.avgDaily = stats.totalProfit / daysDiff;
     }
@@ -95,19 +106,71 @@ export class OwnersStatsPageComponent implements OnInit {
   readonly totalProfit = computed(() => this.ownerStats().reduce((s, o) => s + o.totalProfit, 0));
   readonly totalUnits = computed(() => this.ownerStats().reduce((s, o) => s + o.totalUnits, 0));
 
-  readonly dailyData = computed(() => {
+  readonly timeSlices = computed<TimeSlice[]>(() => {
     const sales = this.ownerSales();
-    const byDay = new Map<string, Map<string, number>>();
+    const p = this.period();
+    const grouped = new Map<string, Map<string, { sales: number; profit: number; units: number }>>();
 
     for (const row of sales) {
-      const day = row.sale_day.slice(0, 10);
-      if (!byDay.has(day)) byDay.set(day, new Map());
-      byDay.get(day)!.set(row.owner_id, (byDay.get(day)!.get(row.owner_id) ?? 0) + Number(row.gross_sales));
+      const raw = row.sale_day;
+      let key: string;
+
+      if (p === 'day') {
+        key = raw.slice(0, 13);
+      } else if (p === 'week' || p === 'month') {
+        key = raw.slice(0, 10);
+      } else {
+        const d = new Date(raw);
+        const weekStart = new Date(d);
+        weekStart.setDate(d.getDate() - d.getDay());
+        key = weekStart.toISOString().slice(0, 10);
+      }
+
+      if (!grouped.has(key)) grouped.set(key, new Map());
+      const ownerMap = grouped.get(key)!;
+      const existing = ownerMap.get(row.owner_id);
+      if (existing) {
+        existing.sales += Number(row.gross_sales);
+        existing.profit += Number(row.estimated_profit);
+        existing.units += Number(row.units);
+      } else {
+        ownerMap.set(row.owner_id, {
+          sales: Number(row.gross_sales),
+          profit: Number(row.estimated_profit),
+          units: Number(row.units),
+        });
+      }
     }
 
-    return [...byDay.entries()]
+    const ownerMapGlobal = new Map<string, { name: string; initial: string }>();
+    for (const row of sales) {
+      if (!ownerMapGlobal.has(row.owner_id)) {
+        ownerMapGlobal.set(row.owner_id, {
+          name: `${row.owner_first_name} ${row.owner_last_name}`,
+          initial: (row.owner_last_name || row.owner_first_name || '?').charAt(0).toUpperCase(),
+        });
+      }
+    }
+
+    return [...grouped.entries()]
       .sort(([a], [b]) => a.localeCompare(b))
-      .map(([date, owners]) => ({ date, owners: [...owners.entries()] }));
+      .map(([dateKey, ownerData]) => {
+        const owners = [...ownerData.entries()].map(([id, d]) => ({
+          id,
+          name: ownerMapGlobal.get(id)?.name ?? id,
+          initial: ownerMapGlobal.get(id)?.initial ?? '?',
+          ...d,
+        }));
+        const totalProfit = owners.reduce((s, o) => s + o.profit, 0);
+        const totalSales = owners.reduce((s, o) => s + o.sales, 0);
+        return { label: this.formatSliceLabel(dateKey, p), dateKey, owners, totalProfit, totalSales };
+      });
+  });
+
+  readonly maxSliceProfit = computed(() => {
+    const slices = this.timeSlices();
+    if (slices.length === 0) return 1;
+    return Math.max(1, ...slices.map(s => Math.abs(s.totalProfit)));
   });
 
   async ngOnInit() { await this.load(); }
@@ -140,5 +203,23 @@ export class OwnersStatsPageComponent implements OnInit {
 
   profitPercent(profit: number, sales: number): number {
     return sales > 0 ? Math.round((profit / sales) * 100) : 0;
+  }
+
+  getOwnerSlice(slice: TimeSlice, ownerId: string) {
+    return slice.owners.find(o => o.id === ownerId);
+  }
+
+  private formatSliceLabel(key: string, p: Period): string {
+    if (p === 'day') {
+      const hour = key.slice(11, 13);
+      return `${parseInt(hour, 10)}:00`;
+    }
+    if (p === 'week' || p === 'month') {
+      const d = new Date(key + 'T12:00:00');
+      const dayNames = ['Dom', 'Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb'];
+      return `${dayNames[d.getDay()]} ${d.getDate()}`;
+    }
+    const d = new Date(key + 'T12:00:00');
+    return `Sem ${d.getDate()}/${d.getMonth() + 1}`;
   }
 }
