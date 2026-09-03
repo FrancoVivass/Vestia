@@ -148,7 +148,7 @@ export class ProductService {
         size: variant.size,
         sku: variant.sku,
         barcode: variant.barcode,
-        initial_stock: isEdit ? stockDelta : Number(variant.stock ?? 0),
+        initial_stock: isEdit ? Math.max(0, stockDelta) : Number(variant.stock ?? 0),
         owner_id: variant.ownerId || null,
         cost: Number(variant.cost),
         price: Number(variant.price),
@@ -157,6 +157,30 @@ export class ProductService {
     };
     const { data, error } = await this.client.rpc('save_product_complete', { p_product_id: id, p_data: payload });
     if (error) throw this.asError(error);
+
+    if (id && stockDelta < 0) {
+      const { data: variants } = await this.client
+        .from('product_variants')
+        .select('id,inventory_balances(owner_id,quantity)')
+        .eq('product_id', id)
+        .eq('active', true)
+        .limit(1);
+      if (variants?.length) {
+        const v = variants[0];
+        const balances = v.inventory_balances ?? [];
+        if (balances.length) {
+          const ownerId = balances[0].owner_id;
+          const currentQty = Number(balances[0].quantity ?? 0);
+          const targetQty = Math.max(0, currentQty + stockDelta);
+          await this.client
+            .from('inventory_balances')
+            .update({ quantity: targetQty, updated_at: new Date().toISOString() })
+            .eq('variant_id', v.id)
+            .eq('owner_id', ownerId);
+        }
+      }
+    }
+
     if (reload) await this.load();
     return (data as string) ?? id ?? '';
   }
