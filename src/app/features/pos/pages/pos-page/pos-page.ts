@@ -6,6 +6,7 @@ import { BusinessContextService } from '../../../../core/services/business-conte
 import { CashService } from '../../../../core/services/cash.service';
 import { DataAccessService } from '../../../../core/services/data-access.service';
 import { InventorySearchMode, InventoryService } from '../../../../core/services/inventory.service';
+import { CatalogRealtimeService } from '../../../../core/services/catalog-realtime.service';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { SaleService } from '../../../../core/services/sale.service';
 import { SupabaseService } from '../../../../core/services/supabase.service';
@@ -30,6 +31,7 @@ interface Receipt {
 })
 export class PosPageComponent implements OnInit, OnDestroy {
   private readonly inventory = inject(InventoryService);
+  private readonly realtime = inject(CatalogRealtimeService);
   private readonly sales = inject(SaleService);
   private readonly cash = inject(CashService);
   private readonly data = inject(DataAccessService);
@@ -39,6 +41,7 @@ export class PosPageComponent implements OnInit, OnDestroy {
   private readonly business = inject(BusinessContextService);
   private readonly el = inject(ElementRef);
   private saleAnim: any;
+  private stopRealtime: (() => void) | null = null;
 
   readonly stock = signal<InventoryRow[]>([]);
   readonly cart = signal<CartItem[]>([]);
@@ -113,11 +116,17 @@ export class PosPageComponent implements OnInit, OnDestroy {
   readonly cartCount = computed(() => this.cart().reduce((sum, item) => sum + item.quantity, 0));
 
   async ngOnInit(): Promise<void> {
+    this.stopRealtime = this.realtime.subscribe(() => this.refreshStock());
     await Promise.all([this.refresh(), this.loadTicketSettings()]);
   }
 
   ngOnDestroy(): void {
+    this.stopRealtime?.();
     this.saleAnim?.destroy();
+  }
+
+  private async refreshStock(): Promise<void> {
+    this.stock.set(await this.inventory.list(this.search, this.searchMode));
   }
 
   private async loadTicketSettings(): Promise<void> {

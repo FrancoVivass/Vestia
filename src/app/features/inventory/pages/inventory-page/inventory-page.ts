@@ -1,8 +1,9 @@
-import { Component, OnInit, inject, signal, computed } from '@angular/core';
+import { Component, OnDestroy, OnInit, inject, signal, computed } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CurrencyPipe } from '@angular/common';
 import { InventoryRow } from '../../../../core/models/domain.model';
 import { InventoryService } from '../../../../core/services/inventory.service';
+import { CatalogRealtimeService } from '../../../../core/services/catalog-realtime.service';
 
 @Component({
   selector: 'app-inventory-page',
@@ -10,8 +11,10 @@ import { InventoryService } from '../../../../core/services/inventory.service';
   templateUrl: './inventory-page.html',
   styleUrl: './inventory-page.css',
 })
-export class InventoryPageComponent implements OnInit {
+export class InventoryPageComponent implements OnInit, OnDestroy {
   private readonly service = inject(InventoryService);
+  private readonly realtime = inject(CatalogRealtimeService);
+  private stopRealtime: (() => void) | null = null;
   readonly rows = signal<InventoryRow[]>([]);
   readonly loading = signal(false);
   search = '';
@@ -52,12 +55,19 @@ export class InventoryPageComponent implements OnInit {
     return [...groups.values()].sort((a, b) => b.total - a.total);
   });
 
-  async ngOnInit() { await this.load(); }
+  async ngOnInit() {
+    this.stopRealtime = this.realtime.subscribe(() => this.load(false));
+    await this.load();
+  }
 
-  async load() {
-    this.loading.set(true);
+  ngOnDestroy(): void {
+    this.stopRealtime?.();
+  }
+
+  async load(showLoading = true) {
+    if (showLoading) this.loading.set(true);
     try { this.rows.set(await this.service.list(this.search)); }
-    finally { this.loading.set(false); }
+    finally { if (showLoading) this.loading.set(false); }
   }
 
   state(r: InventoryRow) {

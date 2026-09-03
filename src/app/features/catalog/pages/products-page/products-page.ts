@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import { Brand } from '../../../../core/models/brand.model';
 import { Category } from '../../../../core/models/category.model';
@@ -9,6 +9,7 @@ import { BusinessContextService } from '../../../../core/services/business-conte
 import { CategoryService } from '../../../../core/services/category.service';
 import { DataAccessService } from '../../../../core/services/data-access.service';
 import { InventoryService } from '../../../../core/services/inventory.service';
+import { CatalogRealtimeService } from '../../../../core/services/catalog-realtime.service';
 import { SupabaseService } from '../../../../core/services/supabase.service';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { ProductService } from '../../../../core/services/product.service';
@@ -39,7 +40,7 @@ import { ProductImportDraft, ProductImportModalComponent } from '../../component
   templateUrl: './products-page.html',
   styleUrl: './products-page.css',
 })
-export class ProductsPageComponent {
+export class ProductsPageComponent implements OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly productService = inject(ProductService);
   private readonly categoryService = inject(CategoryService);
@@ -49,6 +50,7 @@ export class ProductsPageComponent {
   private readonly toast = inject(ToastService);
   private readonly data = inject(DataAccessService);
   private readonly inventoryService = inject(InventoryService);
+  private readonly realtime = inject(CatalogRealtimeService);
   private readonly sb = inject(SupabaseService).client;
 
   readonly loading = signal(false);
@@ -62,10 +64,18 @@ export class ProductsPageComponent {
   readonly owners = signal<Array<{id:string;name:string}>>([]);
   readonly stockFilter = signal<'all' | 'in_stock' | 'no_stock'>('all');
   readonly productStockMap = signal<Map<string, number>>(new Map());
+  private readonly stopRealtime: () => void;
 
   constructor() {
     void this.loadOwners();
     void this.loadStock();
+    this.stopRealtime = this.realtime.subscribe(async () => {
+      await Promise.all([this.productService.load(), this.loadStock(), this.loadOwners()]);
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.stopRealtime();
   }
 
   readonly filtersForm = this.fb.nonNullable.group({
@@ -258,7 +268,7 @@ export class ProductsPageComponent {
         }
       }
       this.closeModal();
-      await this.loadOwners();
+      await Promise.all([this.loadOwners(), this.loadStock()]);
     } catch (error) {
       this.toast.show({ title: 'No se pudo guardar el producto', description: error instanceof Error ? error.message : 'Error inesperado', variant: 'danger' });
     } finally {
@@ -333,7 +343,7 @@ export class ProductsPageComponent {
       const result = await this.productService.importMany(products);
       if (result.created) {
         this.importOpen.set(false);
-        await this.loadOwners();
+        await Promise.all([this.loadOwners(), this.loadStock()]);
         this.toast.show({title:`${result.created} producto(s) importado(s)`,description:'Se generaron variantes, códigos de barras y etiquetas automáticamente.',variant:result.errors.length?'warning':'success'});
       }
       if (result.errors.length) this.toast.show({title:`${result.errors.length} producto(s) no se importaron`,description:result.errors.slice(0,3).join(' · '),variant:'danger'});
