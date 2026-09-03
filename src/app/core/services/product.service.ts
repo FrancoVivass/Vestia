@@ -124,6 +124,9 @@ export class ProductService {
   }
 
   private async save(id: string | null, value: ProductFormValue | Product, reload = true): Promise<string> {
+    const oldStock = id ? (this.getById(id)?.stock ?? 0) : 0;
+    const newStock = Number(value.stock ?? 0);
+
     const payload = {
       name: value.name,
       sku: value.sku,
@@ -133,8 +136,6 @@ export class ProductService {
       base_cost: Number(value.purchasePrice),
       base_price: Number(value.salePrice),
       promotional_price: value.promotionalPrice === null ? null : Number(value.promotionalPrice),
-      minimum_stock: Number(value.stock),
-      maximum_stock: Number(value.stock),
       internal_code: value.internalCode,
       barcode: value.barcode,
       active: value.status === 'active',
@@ -154,8 +155,37 @@ export class ProductService {
     };
     const { data, error } = await this.client.rpc('save_product_complete', { p_product_id: id, p_data: payload });
     if (error) throw this.asError(error);
+
+    const productId = (data as string) ?? id;
+    if (id && newStock !== oldStock && productId) {
+      const stockDiff = newStock - oldStock;
+      const { data: variants } = await this.client
+        .from('product_variants')
+        .select('id,inventory_balances(owner_id,quantity)')
+        .eq('product_id', productId)
+        .eq('active', true);
+      if (variants?.length) {
+        const firstVariant = variants[0];
+        const balances = firstVariant.inventory_balances ?? [];
+        if (balances.length) {
+          const ownerId = balances[0].owner_id;
+          const currentQty = Number(balances[0].quantity ?? 0);
+          const targetQty = currentQty + stockDiff;
+          await this.client
+            .from('inventory_balances')
+            .update({ quantity: Math.max(0, targetQty) })
+            .eq('variant_id', firstVariant.id)
+            .eq('owner_id', ownerId);
+        } else if (stockDiff > 0) {
+          await this.client
+            .from('inventory_balances')
+            .insert({ variant_id: firstVariant.id, owner_id: null, quantity: stockDiff });
+        }
+      }
+    }
+
     if (reload) await this.load();
-    return data as string;
+    return (data as string) ?? id ?? '';
   }
 
   private mapVariant(variant: any): ProductVariant {
