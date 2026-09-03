@@ -55,6 +55,17 @@
         </select>
       </div>
     </form>
+    <div class="stock-filters">
+      <button class="stock-btn" [class.active]="stockFilter() === 'all'" (click)="setStockFilter('all')">
+        Todos <span class="stock-count">{{ products().length }}</span>
+      </button>
+      <button class="stock-btn stock-btn-danger" [class.active]="stockFilter() === 'no_stock'" (click)="setStockFilter('no_stock')">
+        Sin stock <span class="stock-count">{{ noStockCount() }}</span>
+      </button>
+      <button class="stock-btn stock-btn-success" [class.active]="stockFilter() === 'in_stock'" (click)="setStockFilter('in_stock')">
+        Con stock <span class="stock-count">{{ inStockCount() }}</span>
+      </button>
+    </div>
   </div>
 
   @if (loading()) {
@@ -86,6 +97,11 @@
                 <div class="flex flex-wrap items-center gap-3">
                   <h3 class="text-xl font-semibold">{{ product.name }}</h3>
                   <app-badge [label]="product.status === 'active' ? 'Activo' : 'Inactivo'" [variant]="product.status === 'active' ? 'success' : 'warning'" />
+                  @if (stockFilter() === 'no_stock' || stockFilter() === 'in_stock') {
+                    <span class="stock-badge" [class.stock-ok]="productStock(product.id) > 0" [class.stock-zero]="productStock(product.id) === 0">
+                      {{ productStock(product.id) }} unidades
+                    </span>
+                  }
                 </div>
                 <p class="mt-2 text-sm text-[var(--color-muted)]">SKU {{ product.sku }} · Interno {{ product.internalCode }} · Barras {{ product.barcode }}</p>
                 <p class="mt-2 text-sm text-[var(--color-muted)]">{{ categoryName(product.categoryId) }} · {{ brandName(product.brandId) }}</p>

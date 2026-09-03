@@ -8,6 +8,7 @@ import { BrandService } from '../../../../core/services/brand.service';
 import { BusinessContextService } from '../../../../core/services/business-context.service';
 import { CategoryService } from '../../../../core/services/category.service';
 import { DataAccessService } from '../../../../core/services/data-access.service';
+import { InventoryService } from '../../../../core/services/inventory.service';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -46,6 +47,7 @@ export class ProductsPageComponent {
   private readonly businessContext = inject(BusinessContextService);
   private readonly toast = inject(ToastService);
   private readonly data = inject(DataAccessService);
+  private readonly inventoryService = inject(InventoryService);
 
   readonly loading = signal(false);
   readonly modalOpen = signal(false);
@@ -56,8 +58,13 @@ export class ProductsPageComponent {
   readonly labelProduct = signal<Product | null>(null);
   readonly importOpen = signal(false);
   readonly owners = signal<Array<{id:string;name:string}>>([]);
+  readonly stockFilter = signal<'all' | 'in_stock' | 'no_stock'>('all');
+  readonly productStockMap = signal<Map<string, number>>(new Map());
 
-  constructor() { void this.loadOwners(); }
+  constructor() {
+    void this.loadOwners();
+    void this.loadStock();
+  }
 
   readonly filtersForm = this.fb.nonNullable.group({
     search: [''],
@@ -96,6 +103,8 @@ export class ProductsPageComponent {
     const brandId = this.filtersForm.controls.brandId.getRawValue();
     const status = this.filtersForm.controls.status.getRawValue();
     const sort = this.filtersForm.controls.sort.getRawValue();
+    const stock = this.stockFilter();
+    const stockMap = this.productStockMap();
 
     const filtered = this.products().filter((product) => {
       const matchesSearch =
@@ -107,8 +116,12 @@ export class ProductsPageComponent {
       const matchesCategory = categoryId === 'all' || product.categoryId === categoryId;
       const matchesBrand = brandId === 'all' || product.brandId === brandId;
       const matchesStatus = status === 'all' || product.status === status;
+      const matchesStock =
+        stock === 'all' ||
+        (stock === 'no_stock' && (stockMap.get(product.id) ?? 0) === 0) ||
+        (stock === 'in_stock' && (stockMap.get(product.id) ?? 0) > 0);
 
-      return matchesSearch && matchesCategory && matchesBrand && matchesStatus;
+      return matchesSearch && matchesCategory && matchesBrand && matchesStatus && matchesStock;
     });
 
     return [...filtered].sort((a, b) => {
@@ -173,6 +186,38 @@ export class ProductsPageComponent {
     } catch {
       this.owners.set([]);
     }
+  }
+
+  private async loadStock(): Promise<void> {
+    try {
+      const rows = await this.inventoryService.list();
+      const map = new Map<string, number>();
+      for (const row of rows) {
+        const existing = map.get(row.variantId) ?? 0;
+        map.set(row.variantId, existing + row.quantity);
+      }
+      this.productStockMap.set(map);
+    } catch {
+      this.productStockMap.set(new Map());
+    }
+  }
+
+  setStockFilter(value: 'all' | 'in_stock' | 'no_stock'): void {
+    this.stockFilter.set(value);
+  }
+
+  productStock(productId: string): number {
+    return this.productStockMap().get(productId) ?? 0;
+  }
+
+  noStockCount(): number {
+    const stockMap = this.productStockMap();
+    return this.products().filter(p => (stockMap.get(p.id) ?? 0) === 0).length;
+  }
+
+  inStockCount(): number {
+    const stockMap = this.productStockMap();
+    return this.products().filter(p => (stockMap.get(p.id) ?? 0) > 0).length;
   }
 
   openLabels(product: Product): void {

@@ -1,3 +1,65 @@
 :host {
   display: block;
 }
+
+/* ─── Stock Filters ─── */
+.stock-filters {
+  display: flex;
+  gap: .4rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-border);
+}
+.stock-btn {
+  display: flex;
+  align-items: center;
+  gap: .4rem;
+  padding: .5rem .9rem;
+  border: 1px solid var(--color-border);
+  border-radius: 99px;
+  background: var(--color-surface);
+  font-size: .78rem;
+  font-weight: 600;
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: all .15s;
+}
+.stock-btn:hover { border-color: var(--color-primary); color: var(--color-text); }
+.stock-btn.active {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #fff;
+}
+.stock-btn-danger.active {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+.stock-btn-success.active {
+  background: #059669;
+  border-color: #059669;
+  color: #fff;
+}
+.stock-count {
+  font-size: .68rem;
+  background: rgba(0,0,0,.08);
+  padding: .1rem .4rem;
+  border-radius: 99px;
+}
+.stock-btn.active .stock-count { background: rgba(255,255,255,.25); }
+
+/* ─── Stock Badge ─── */
+.stock-badge {
+  padding: .2rem .6rem;
+  border-radius: 99px;
+  font-size: .72rem;
+  font-weight: 700;
+}
+.stock-ok {
+  background: #d1fae5;
+  color: #065f46;
+}
+.stock-zero {
+  background: #fee2e2;
+  color: #991b1b;
+}
