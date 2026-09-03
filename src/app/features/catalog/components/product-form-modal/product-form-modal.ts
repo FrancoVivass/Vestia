@@ -214,16 +214,25 @@ export class ProductFormModalComponent implements OnChanges {
     }
 
     const value = this.form.getRawValue();
+    const totalStock = Number(value.stock ?? 0);
+    const variantCount = value.variants.length || 1;
+    const baseStock = Math.floor(totalStock / variantCount);
+    const remainder = totalStock - baseStock * variantCount;
+
+    const distributedVariants = value.variants.map((variant: any, i: number) => ({
+      ...variant,
+      stock: baseStock + (i < remainder ? 1 : 0),
+    }));
 
     this.saved.emit({
       ...value,
       promotionalPrice: value.promotionalPrice || null,
       purchasePrice: Number(value.purchasePrice),
       salePrice: Number(value.salePrice),
-      stock: Number(value.stock),
+      stock: totalStock,
       status: value.status as 'active' | 'inactive',
       images: value.images as ProductImage[],
-      variants: value.variants as ProductVariant[],
+      variants: distributedVariants as ProductVariant[],
     });
   }
 

@@ -126,6 +126,8 @@ export class ProductService {
   private async save(id: string | null, value: ProductFormValue | Product, reload = true): Promise<string> {
     const oldStock = id ? (this.getById(id)?.stock ?? 0) : 0;
     const newStock = Number(value.stock ?? 0);
+    const stockDelta = newStock - oldStock;
+    const isEdit = !!id;
 
     const payload = {
       name: value.name,
@@ -146,7 +148,7 @@ export class ProductService {
         size: variant.size,
         sku: variant.sku,
         barcode: variant.barcode,
-        initial_stock: Number(variant.stock ?? 0),
+        initial_stock: isEdit ? stockDelta : Number(variant.stock ?? 0),
         owner_id: variant.ownerId || null,
         cost: Number(variant.cost),
         price: Number(variant.price),
@@ -155,35 +157,6 @@ export class ProductService {
     };
     const { data, error } = await this.client.rpc('save_product_complete', { p_product_id: id, p_data: payload });
     if (error) throw this.asError(error);
-
-    const productId = (data as string) ?? id;
-    if (id && newStock !== oldStock && productId) {
-      const stockDiff = newStock - oldStock;
-      const { data: variants } = await this.client
-        .from('product_variants')
-        .select('id,inventory_balances(owner_id,quantity)')
-        .eq('product_id', productId)
-        .eq('active', true);
-      if (variants?.length) {
-        const firstVariant = variants[0];
-        const balances = firstVariant.inventory_balances ?? [];
-        if (balances.length) {
-          const ownerId = balances[0].owner_id;
-          const currentQty = Number(balances[0].quantity ?? 0);
-          const targetQty = currentQty + stockDiff;
-          await this.client
-            .from('inventory_balances')
-            .update({ quantity: Math.max(0, targetQty) })
-            .eq('variant_id', firstVariant.id)
-            .eq('owner_id', ownerId);
-        } else if (stockDiff > 0) {
-          await this.client
-            .from('inventory_balances')
-            .insert({ variant_id: firstVariant.id, owner_id: null, quantity: stockDiff });
-        }
-      }
-    }
-
     if (reload) await this.load();
     return (data as string) ?? id ?? '';
   }

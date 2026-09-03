@@ -45,8 +45,7 @@
               <label>Código de barras *<input formControlName="barcode"></label>
               <label>Costo *<input type="number" min="0" formControlName="cost"></label>
               <label>Precio *<input type="number" min="0" formControlName="price"></label>
-              <label>{{product ? 'Stock a agregar' : 'Stock inicial'}}<input type="number" min="0" formControlName="stock"></label>
-              <label>Dueño de la mercadería<select formControlName="ownerId"><option value="">{{owners.length?'Usar primer dueño activo':'Crear Stock Principal automáticamente'}}</option>@for(owner of owners;track owner.id){<option [value]="owner.id">{{owner.name}}</option>}</select></label>
+              <label>Dueño de la mercadería<select formControlName="ownerId"><option value="">{{owners.length?'Seleccionar dueño':'Sin dueños configurados'}}</option>@for(owner of owners;track owner.id){<option [value]="owner.id">{{owner.name}}</option>}</select></label>
               <label>Estado<select formControlName="status"><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>
             </div>
           </div>
