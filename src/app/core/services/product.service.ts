@@ -17,36 +17,43 @@ export class ProductService {
   async load(): Promise<void> {
     const { data, error } = await this.client
       .from('products')
-      .select('*,product_images(*),product_variants(*,sizes(name),colors(name))')
+      .select('*,product_images(*),product_variants(*,sizes(name),colors(name),inventory_balances(quantity))')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (error) throw this.asError(error);
 
-    const products = await Promise.all((data ?? []).map(async (item: any): Promise<Product> => ({
-      id: item.id,
-      businessId: item.business_id,
-      name: item.name,
-      sku: item.sku,
-      internalCode: item.internal_code ?? item.sku,
-      barcode: item.barcode ?? item.product_variants?.[0]?.barcode ?? '',
-      description: item.description ?? '',
-      categoryId: item.category_id ?? '',
-      brandId: item.brand_id ?? '',
-      purchasePrice: Number(item.base_cost ?? 0),
-      salePrice: Number(item.base_price),
-      promotionalPrice: item.promotional_price === null ? null : Number(item.promotional_price),
-      margin: this.calculateMargin(Number(item.base_cost ?? 0), Number(item.base_price)),
-      stock: Number(item.stock ?? 0),
-      status: item.active ? 'active' : 'inactive',
-      images: await Promise.all((item.product_images ?? []).map(async (image: any) => ({
-        id: image.id,
-        url: await this.storage.signedUrl('business-assets', image.storage_path),
-        path: image.storage_path,
-        order: image.sort_order,
-      }))),
-      variants: (item.product_variants ?? []).map((variant: any) => this.mapVariant(variant)),
-      createdAt: item.created_at,
-    })));
+    const products = await Promise.all((data ?? []).map(async (item: any): Promise<Product> => {
+      const variants = (item.product_variants ?? []).map((variant: any) => this.mapVariant(variant));
+      const totalStock = variants.reduce((sum: number, _v: ProductVariant, i: number) => {
+        const balances = item.product_variants[i]?.inventory_balances ?? [];
+        return sum + balances.reduce((s: number, b: any) => s + Number(b.quantity ?? 0), 0);
+      }, 0);
+      return {
+        id: item.id,
+        businessId: item.business_id,
+        name: item.name,
+        sku: item.sku,
+        internalCode: item.internal_code ?? item.sku,
+        barcode: item.barcode ?? item.product_variants?.[0]?.barcode ?? '',
+        description: item.description ?? '',
+        categoryId: item.category_id ?? '',
+        brandId: item.brand_id ?? '',
+        purchasePrice: Number(item.base_cost ?? 0),
+        salePrice: Number(item.base_price),
+        promotionalPrice: item.promotional_price === null ? null : Number(item.promotional_price),
+        margin: this.calculateMargin(Number(item.base_cost ?? 0), Number(item.base_price)),
+        stock: totalStock,
+        status: item.active ? 'active' : 'inactive',
+        images: await Promise.all((item.product_images ?? []).map(async (image: any) => ({
+          id: image.id,
+          url: await this.storage.signedUrl('business-assets', image.storage_path),
+          path: image.storage_path,
+          order: image.sort_order,
+        }))),
+        variants,
+        createdAt: item.created_at,
+      };
+    }));
     this.state.set(products);
   }
 
