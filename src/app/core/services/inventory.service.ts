@@ -37,9 +37,11 @@ export class InventoryService {
     const rows = (data ?? [])
       .filter((variant: any) => variant.active && variant.products?.active && !variant.products?.deleted_at)
       .flatMap((variant: any): InventoryRow[] => {
-        const balances = variant.inventory_balances?.length
-          ? variant.inventory_balances
-          : [{ owner_id: '', quantity: 0, owners: null }];
+        const storedBalances = variant.inventory_balances ?? [];
+        const positiveBalances = storedBalances.filter((balance: any) => Number(balance.quantity ?? 0) > 0);
+        const balances = positiveBalances.length
+          ? positiveBalances
+          : (storedBalances.length ? [storedBalances[0]] : [{ owner_id: '', quantity: 0, owners: null }]);
         return balances.map((balance: any): InventoryRow => ({
           variantId: variant.id,
           productId: variant.product_id,

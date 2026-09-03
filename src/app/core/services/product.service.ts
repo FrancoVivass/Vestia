@@ -17,7 +17,7 @@ export class ProductService {
   async load(): Promise<void> {
     const { data, error } = await this.client
       .from('products')
-      .select('*,product_images(*),product_variants(*,sizes(name),colors(name),inventory_balances(quantity))')
+      .select('*,product_images(*),product_variants(*,sizes(name),colors(name),inventory_balances(owner_id,quantity,owners(first_name,last_name)))')
       .is('deleted_at', null)
       .order('created_at', { ascending: false });
     if (error) throw this.asError(error);
@@ -124,8 +124,6 @@ export class ProductService {
   }
 
   private async save(id: string | null, value: ProductFormValue | Product, reload = true): Promise<string> {
-    const newStock = Number(value.stock ?? 0);
-
     const payload = {
       name: value.name,
       sku: value.sku,
@@ -157,54 +155,7 @@ export class ProductService {
 
     const productId = (data as string) ?? id;
     if (productId) {
-      const { data: vRows } = await this.client
-        .from('product_variants')
-        .select('id')
-        .eq('product_id', productId)
-        .eq('active', true)
-        .order('created_at')
-        .limit(1);
-      if (vRows?.length) {
-        const vid = vRows[0].id;
-        const { data: balRows } = await this.client
-          .from('inventory_balances')
-          .select('owner_id,quantity')
-          .eq('variant_id', vid);
-        const currentQty = balRows?.length ? Number(balRows[0].quantity ?? 0) : 0;
-        const ownerId = balRows?.length ? balRows[0].owner_id : null;
-
-        if (newStock !== currentQty) {
-          if (balRows?.length && ownerId) {
-            await this.client
-              .from('inventory_balances')
-              .update({ quantity: newStock, updated_at: new Date().toISOString() })
-              .eq('variant_id', vid)
-              .eq('owner_id', ownerId);
-          } else if (newStock > 0) {
-            let assignOwner = ownerId;
-            if (!assignOwner) {
-              const { data: defOwner } = await this.client
-                .from('owners')
-                .select('id')
-                .eq('active', true)
-                .order('created_at')
-                .limit(1)
-                .maybeSingle();
-              assignOwner = defOwner?.id;
-            }
-            if (assignOwner) {
-              await this.client
-                .from('inventory_balances')
-                .upsert({
-                  variant_id: vid,
-                  owner_id: assignOwner,
-                  quantity: newStock,
-                  updated_at: new Date().toISOString(),
-                }, { onConflict: 'variant_id,owner_id' });
-            }
-          }
-        }
-      }
+      await this.synchronizeInventory(value.variants);
     }
 
     if (reload) await this.load();
@@ -212,6 +163,8 @@ export class ProductService {
   }
 
   private mapVariant(variant: any): ProductVariant {
+    const balances = variant.inventory_balances ?? [];
+    const assignedBalance = balances.find((balance: any) => Number(balance.quantity ?? 0) > 0) ?? balances[0];
     return {
       id: variant.id,
       name: `${variant.colors?.name ?? '—'} / ${variant.sizes?.name ?? '—'}`,
@@ -219,11 +172,67 @@ export class ProductService {
       size: variant.sizes?.name ?? '',
       sku: variant.sku,
       barcode: variant.barcode,
-      stock: 0,
+      stock: balances.reduce((sum: number, balance: any) => sum + Number(balance.quantity ?? 0), 0),
+      ownerId: assignedBalance?.owner_id ?? '',
       cost: Number(variant.cost ?? 0),
       price: Number(variant.price),
       status: variant.active ? 'active' : 'inactive',
     };
+  }
+
+  private async synchronizeInventory(variants: ProductVariant[]): Promise<void> {
+    let defaultOwnerId: string | null | undefined;
+
+    for (const variant of variants) {
+      const desiredQuantity = Number(variant.stock ?? 0);
+      const { data: balances, error: balancesError } = await this.client
+        .from('inventory_balances')
+        .select('owner_id,quantity')
+        .eq('variant_id', variant.id);
+      if (balancesError) throw this.asError(balancesError);
+
+      let desiredOwnerId = variant.ownerId || balances?.find((balance: any) => Number(balance.quantity) > 0)?.owner_id;
+      if (!desiredOwnerId && desiredQuantity > 0) {
+        if (defaultOwnerId === undefined) {
+          const { data: owner, error: ownerError } = await this.client
+            .from('owners')
+            .select('id')
+            .eq('active', true)
+            .order('created_at')
+            .limit(1)
+            .maybeSingle();
+          if (ownerError) throw this.asError(ownerError);
+          defaultOwnerId = owner?.id ?? null;
+        }
+        desiredOwnerId = defaultOwnerId ?? undefined;
+      }
+
+      if (desiredQuantity > 0 && !desiredOwnerId) {
+        throw new Error('Seleccioná un dueño para cada variante que tenga stock.');
+      }
+
+      for (const balance of balances ?? []) {
+        const targetQuantity = balance.owner_id === desiredOwnerId ? desiredQuantity : 0;
+        if (Number(balance.quantity) !== targetQuantity) {
+          await this.adjustInventory(variant.id, balance.owner_id, targetQuantity);
+        }
+      }
+
+      const desiredBalance = balances?.find((balance: any) => balance.owner_id === desiredOwnerId);
+      if (desiredOwnerId && !desiredBalance && desiredQuantity > 0) {
+        await this.adjustInventory(variant.id, desiredOwnerId, desiredQuantity);
+      }
+    }
+  }
+
+  private async adjustInventory(variantId: string, ownerId: string, quantity: number): Promise<void> {
+    const { error } = await this.client.rpc('adjust_inventory', {
+      p_variant: variantId,
+      p_owner: ownerId,
+      p_counted: quantity,
+      p_notes: 'Ajuste realizado desde la edición del producto',
+    });
+    if (error) throw this.asError(error);
   }
 
   private asError(error: any): Error {

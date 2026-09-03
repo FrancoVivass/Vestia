@@ -4,6 +4,7 @@ import { filterInventoryRows } from './inventory.service';
 describe('POS inventory search', () => {
   const row: InventoryRow = {
     variantId: 'variant',
+    productId: 'product',
     productName: 'Remera Oversize',
     internalCode: 'INT-REM-01',
     productBarcode: '200000000001',
