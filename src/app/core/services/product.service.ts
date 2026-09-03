@@ -124,10 +124,23 @@ export class ProductService {
   }
 
   private async save(id: string | null, value: ProductFormValue | Product, reload = true): Promise<string> {
-    const oldStock = id ? (this.getById(id)?.stock ?? 0) : 0;
+    const isEdit = !!id;
+    let oldStock = 0;
+    if (id) {
+      const { data: invRows } = await this.client
+        .from('product_variants')
+        .select('inventory_balances(quantity)')
+        .eq('product_id', id)
+        .eq('active', true);
+      if (invRows?.length) {
+        oldStock = invRows.reduce((sum: number, v: any) => {
+          const balances = v.inventory_balances ?? [];
+          return sum + balances.reduce((s: number, b: any) => s + Number(b.quantity ?? 0), 0);
+        }, 0);
+      }
+    }
     const newStock = Number(value.stock ?? 0);
     const stockDelta = newStock - oldStock;
-    const isEdit = !!id;
 
     const payload = {
       name: value.name,
