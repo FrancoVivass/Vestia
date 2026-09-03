@@ -35,8 +35,7 @@ export interface Product {
   salePrice: number;
   promotionalPrice: number | null;
   margin: number;
-  minStock: number;
-  maxStock: number;
+  stock: number;
   status: CatalogEntityStatus;
   images: ProductImage[];
   variants: ProductVariant[];
@@ -54,8 +53,7 @@ export interface ProductFormValue {
   purchasePrice: number;
   salePrice: number;
   promotionalPrice: number | null;
-  minStock: number;
-  maxStock: number;
+  stock: number;
   status: CatalogEntityStatus;
   images: ProductImage[];
   variants: ProductVariant[];

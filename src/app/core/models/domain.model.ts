@@ -5,7 +5,7 @@ export interface Owner { id:string; businessId:string; firstName:string; lastNam
 export interface CatalogOption { id:string; name:string; active:boolean; }
 export interface VariantStock { ownerId:string; ownerName:string; quantity:number; }
 export interface ProductVariantRecord { id:string; productId:string; sku:string; barcode:string; sizeName:string|null; colorName:string|null; cost:number|null; price:number; minimumStock:number; active:boolean; stocks:VariantStock[]; }
-export interface InventoryRow { variantId:string; productName:string; internalCode:string; productBarcode:string; sku:string; barcode:string; size:string|null; color:string|null; ownerId:string; ownerName:string; quantity:number; minimumStock:number; price:number; }
+export interface InventoryRow { variantId:string; productId:string; productName:string; internalCode:string; productBarcode:string; sku:string; barcode:string; size:string|null; color:string|null; ownerId:string; ownerName:string; quantity:number; minimumStock:number; price:number; }
 export interface CartItem { variantId:string; ownerId:string; productName:string; variantName:string; sku:string; quantity:number; available:number; unitPrice:number; discount:number; }
 export interface SalePaymentInput { paymentMethodId:string; amount:number; reference?:string; }
 export interface SaleInput { cashSessionId:string; customerId?:string|null; discount:number; items:CartItem[]; payments:SalePaymentInput[]; }

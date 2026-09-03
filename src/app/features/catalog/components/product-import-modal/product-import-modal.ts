@@ -24,8 +24,7 @@ export interface ProductImportDraft {
   purchasePrice: number;
   salePrice: number;
   promotionalPrice: number | null;
-  minStock: number;
-  maxStock: number;
+  stock: number;
   sku: string;
   internalCode: string;
   barcode: string;
@@ -154,12 +153,7 @@ export class ProductImportModalComponent implements OnChanges {
       [productSku,internalCode,productBarcode].forEach(code => usedCodes.add(code.toLowerCase()));
       const purchasePrice = this.number(first[5],true) ?? 0;
       const salePrice = this.number(first[6]) ?? 0;
-      const minStock = Math.trunc(this.number(first[8],true) ?? 0);
-      const maxStock = Math.trunc(this.number(first[9],true) ?? 0);
-      if (maxStock > 0 && maxStock < minStock) {
-        errors.push(`Grupo ${group}: Stock máximo debe ser 0 o mayor o igual al mínimo.`);
-        continue;
-      }
+      const stock = Math.trunc(this.number(first[8],true) ?? 0);
       const variants = entries.map((entry,index): ProductImportVariantDraft => ({
         id: crypto.randomUUID(),
         color: this.text(entry.values[12]) || 'Sin color',
@@ -181,7 +175,7 @@ export class ProductImportModalComponent implements OnChanges {
       drafts.push({
         group,name,
         description:this.text(first[2]),categoryName:this.text(first[3]),brandName:this.text(first[4]),
-        purchasePrice,salePrice,promotionalPrice:this.number(first[7],true),minStock,maxStock,
+        purchasePrice,salePrice,promotionalPrice:this.number(first[7],true),stock,
         sku:productSku,internalCode,barcode:productBarcode,status:this.status(first[19]),variants,
       });
     }

@@ -27,8 +27,7 @@ describe('ProductFormModalComponent', () => {
       brandId: '',
       purchasePrice: 100,
       salePrice: 250,
-      minStock: 1,
-      maxStock: 10,
+      stock: 5,
     });
 
     component.nextOrSubmit();

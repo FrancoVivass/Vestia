@@ -53,8 +53,7 @@ export class ProductFormModalComponent implements OnChanges {
     purchasePrice: [0, [Validators.required, Validators.min(0)]],
     salePrice: [0, [Validators.required, Validators.min(0)]],
     promotionalPrice: [0],
-    minStock: [0, [Validators.required, Validators.min(0)]],
-    maxStock: [0, [Validators.required, Validators.min(0)]],
+    stock: [0, [Validators.required, Validators.min(0)]],
     status: ['active'],
     images: this.fb.array([]),
     variants: this.fb.array([]),
@@ -89,7 +88,7 @@ export class ProductFormModalComponent implements OnChanges {
 
   nextOrSubmit(): void {
     if (this.step() === 1) {
-      const controls = ['name','sku','internalCode','barcode','purchasePrice','salePrice','minStock','maxStock'] as const;
+      const controls = ['name','sku','internalCode','barcode','purchasePrice','salePrice','stock'] as const;
       controls.forEach(key => this.form.controls[key].markAsTouched());
       if (controls.some(key => this.form.controls[key].invalid)) {
         this.validationError.set('Revisá los campos obligatorios marcados en rojo.');
@@ -221,8 +220,7 @@ export class ProductFormModalComponent implements OnChanges {
       promotionalPrice: value.promotionalPrice || null,
       purchasePrice: Number(value.purchasePrice),
       salePrice: Number(value.salePrice),
-      minStock: Number(value.minStock),
-      maxStock: Number(value.maxStock),
+      stock: Number(value.stock),
       status: value.status as 'active' | 'inactive',
       images: value.images as ProductImage[],
       variants: value.variants as ProductVariant[],
@@ -241,8 +239,7 @@ export class ProductFormModalComponent implements OnChanges {
       purchasePrice: this.product?.purchasePrice ?? 0,
       salePrice: this.product?.salePrice ?? 0,
       promotionalPrice: this.product?.promotionalPrice ?? 0,
-      minStock: this.product?.minStock ?? 0,
-      maxStock: this.product?.maxStock ?? 0,
+      stock: this.product?.stock ?? 0,
       status: this.product?.status ?? 'active',
       images: [],
       variants: [],

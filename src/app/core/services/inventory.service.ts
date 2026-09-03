@@ -30,7 +30,7 @@ export class InventoryService {
   async list(search = '', mode: InventorySearchMode = 'all'): Promise<InventoryRow[]> {
     const { data, error } = await this.client
       .from('product_variants')
-      .select('id,sku,barcode,price,minimum_stock,active,products!inner(name,internal_code,barcode,active,deleted_at),sizes(name),colors(name),inventory_balances(owner_id,quantity,owners(first_name,last_name))')
+      .select('id,product_id,sku,barcode,price,minimum_stock,active,products!inner(name,internal_code,barcode,active,deleted_at),sizes(name),colors(name),inventory_balances(owner_id,quantity,owners(first_name,last_name))')
       .order('created_at', { ascending: false });
     if (error) throw this.asError(error);
 
@@ -42,6 +42,7 @@ export class InventoryService {
           : [{ owner_id: '', quantity: 0, owners: null }];
         return balances.map((balance: any): InventoryRow => ({
           variantId: variant.id,
+          productId: variant.product_id,
           ownerId: balance.owner_id ?? '',
           quantity: Number(balance.quantity ?? 0),
           sku: variant.sku,
@@ -81,6 +82,15 @@ export class InventoryService {
     const { data, error } = await this.client.rpc('complete_physical_inventory',{p_inventory:inventoryId});
     if (error) throw this.asError(error);
     return Number(data);
+  }
+
+  async stockByProduct(): Promise<Map<string, number>> {
+    const rows = await this.list();
+    const map = new Map<string, number>();
+    for (const row of rows) {
+      map.set(row.productId, (map.get(row.productId) ?? 0) + row.quantity);
+    }
+    return map;
   }
 
   private asError(error: any): Error {

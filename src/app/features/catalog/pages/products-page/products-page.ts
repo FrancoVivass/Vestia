@@ -190,12 +190,7 @@ export class ProductsPageComponent {
 
   private async loadStock(): Promise<void> {
     try {
-      const rows = await this.inventoryService.list();
-      const map = new Map<string, number>();
-      for (const row of rows) {
-        const existing = map.get(row.variantId) ?? 0;
-        map.set(row.variantId, existing + row.quantity);
-      }
+      const map = await this.inventoryService.stockByProduct();
       this.productStockMap.set(map);
     } catch {
       this.productStockMap.set(new Map());
@@ -325,7 +320,7 @@ export class ProductsPageComponent {
         id:crypto.randomUUID(),businessId,name:draft.name,sku:draft.sku,internalCode:draft.internalCode,barcode:draft.barcode,
         description:draft.description,categoryId:categoryMap.get(draft.categoryName.trim().toLowerCase())??'',brandId:brandMap.get(draft.brandName.trim().toLowerCase())??'',
         purchasePrice:draft.purchasePrice,salePrice:draft.salePrice,promotionalPrice:draft.promotionalPrice,
-        margin:this.productService.calculateMargin(draft.purchasePrice,draft.salePrice),minStock:draft.minStock,maxStock:draft.maxStock,status:draft.status,
+        margin:this.productService.calculateMargin(draft.purchasePrice,draft.salePrice),stock:draft.stock,status:draft.status,
         images:[],createdAt:new Date().toISOString(),variants:draft.variants.map(variant=>({...variant,name:`${variant.color} / ${variant.size}`,ownerId:ownerMap.get(variant.ownerName.trim().toLowerCase())??''})),
       }));
       const result = await this.productService.importMany(products);

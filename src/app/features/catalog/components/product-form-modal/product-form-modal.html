@@ -26,8 +26,7 @@
         <label>Precio de venta *<input type="number" min="0" [formControl]="form.controls.salePrice"></label>
         <label>Precio promocional<input type="number" min="0" [formControl]="form.controls.promotionalPrice"></label>
         <label>Margen<div class="readonly">{{margin()}}%</div></label>
-        <label>Stock mínimo *<input type="number" min="0" [formControl]="form.controls.minStock"></label>
-        <label>Stock máximo *<input type="number" min="0" [formControl]="form.controls.maxStock"></label>
+        <label>Stock *<input type="number" min="0" [formControl]="form.controls.stock"></label>
         <label>Estado<select [formControl]="form.controls.status"><option value="active">Activo</option><option value="inactive">Inactivo</option></select></label>
       </div>
       @if(!categories.length||!brands.length){<p class="notice">Podés guardar el producto sin categoría o marca y asignarlas más adelante.</p>}
