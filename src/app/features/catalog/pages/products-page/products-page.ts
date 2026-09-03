@@ -9,6 +9,7 @@ import { BusinessContextService } from '../../../../core/services/business-conte
 import { CategoryService } from '../../../../core/services/category.service';
 import { DataAccessService } from '../../../../core/services/data-access.service';
 import { InventoryService } from '../../../../core/services/inventory.service';
+import { SupabaseService } from '../../../../core/services/supabase.service';
 import { PermissionService } from '../../../../core/services/permission.service';
 import { ProductService } from '../../../../core/services/product.service';
 import { ToastService } from '../../../../core/services/toast.service';
@@ -48,6 +49,7 @@ export class ProductsPageComponent {
   private readonly toast = inject(ToastService);
   private readonly data = inject(DataAccessService);
   private readonly inventoryService = inject(InventoryService);
+  private readonly sb = inject(SupabaseService).client;
 
   readonly loading = signal(false);
   readonly modalOpen = signal(false);
@@ -181,8 +183,13 @@ export class ProductsPageComponent {
 
   private async loadOwners(): Promise<void> {
     try {
-      const result = await this.data.list<{id:string;first_name:string;last_name:string}>('owners',{pageSize:100,active:true});
-      this.owners.set(result.items.map(owner=>({id:owner.id,name:`${owner.first_name} ${owner.last_name}`.trim()})));
+      const { data, error } = await this.sb
+        .from('owners')
+        .select('id,first_name,last_name')
+        .eq('active', true)
+        .order('first_name');
+      if (error) throw error;
+      this.owners.set((data ?? []).map(o => ({ id: o.id, name: `${o.first_name} ${o.last_name}`.trim() })));
     } catch {
       this.owners.set([]);
     }

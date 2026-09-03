@@ -124,23 +124,7 @@ export class ProductService {
   }
 
   private async save(id: string | null, value: ProductFormValue | Product, reload = true): Promise<string> {
-    const isEdit = !!id;
-    let oldStock = 0;
-    if (id) {
-      const { data: invRows } = await this.client
-        .from('product_variants')
-        .select('inventory_balances(quantity)')
-        .eq('product_id', id)
-        .eq('active', true);
-      if (invRows?.length) {
-        oldStock = invRows.reduce((sum: number, v: any) => {
-          const balances = v.inventory_balances ?? [];
-          return sum + balances.reduce((s: number, b: any) => s + Number(b.quantity ?? 0), 0);
-        }, 0);
-      }
-    }
     const newStock = Number(value.stock ?? 0);
-    const stockDelta = newStock - oldStock;
 
     const payload = {
       name: value.name,
@@ -161,7 +145,7 @@ export class ProductService {
         size: variant.size,
         sku: variant.sku,
         barcode: variant.barcode,
-        initial_stock: isEdit ? Math.max(0, stockDelta) : Number(variant.stock ?? 0),
+        initial_stock: 0,
         owner_id: variant.ownerId || null,
         cost: Number(variant.cost),
         price: Number(variant.price),
@@ -171,25 +155,54 @@ export class ProductService {
     const { data, error } = await this.client.rpc('save_product_complete', { p_product_id: id, p_data: payload });
     if (error) throw this.asError(error);
 
-    if (id && stockDelta < 0) {
-      const { data: variants } = await this.client
+    const productId = (data as string) ?? id;
+    if (productId) {
+      const { data: vRows } = await this.client
         .from('product_variants')
-        .select('id,inventory_balances(owner_id,quantity)')
-        .eq('product_id', id)
+        .select('id')
+        .eq('product_id', productId)
         .eq('active', true)
+        .order('created_at')
         .limit(1);
-      if (variants?.length) {
-        const v = variants[0];
-        const balances = v.inventory_balances ?? [];
-        if (balances.length) {
-          const ownerId = balances[0].owner_id;
-          const currentQty = Number(balances[0].quantity ?? 0);
-          const targetQty = Math.max(0, currentQty + stockDelta);
-          await this.client
-            .from('inventory_balances')
-            .update({ quantity: targetQty, updated_at: new Date().toISOString() })
-            .eq('variant_id', v.id)
-            .eq('owner_id', ownerId);
+      if (vRows?.length) {
+        const vid = vRows[0].id;
+        const { data: balRows } = await this.client
+          .from('inventory_balances')
+          .select('owner_id,quantity')
+          .eq('variant_id', vid);
+        const currentQty = balRows?.length ? Number(balRows[0].quantity ?? 0) : 0;
+        const ownerId = balRows?.length ? balRows[0].owner_id : null;
+
+        if (newStock !== currentQty) {
+          if (balRows?.length && ownerId) {
+            await this.client
+              .from('inventory_balances')
+              .update({ quantity: newStock, updated_at: new Date().toISOString() })
+              .eq('variant_id', vid)
+              .eq('owner_id', ownerId);
+          } else if (newStock > 0) {
+            let assignOwner = ownerId;
+            if (!assignOwner) {
+              const { data: defOwner } = await this.client
+                .from('owners')
+                .select('id')
+                .eq('active', true)
+                .order('created_at')
+                .limit(1)
+                .maybeSingle();
+              assignOwner = defOwner?.id;
+            }
+            if (assignOwner) {
+              await this.client
+                .from('inventory_balances')
+                .upsert({
+                  variant_id: vid,
+                  owner_id: assignOwner,
+                  quantity: newStock,
+                  updated_at: new Date().toISOString(),
+                }, { onConflict: 'variant_id,owner_id' });
+            }
+          }
         }
       }
     }
